@@ -1,8 +1,15 @@
-// Game constants and configurations¢
+// Initialize Telegram Web App (with fallback)
+const tg = window.Telegram?.WebApp || {
+    viewportHeight: 744,
+    ready: () => {},
+    expand: () => {}
+};
+
+// Game constants and configurations
 const GAME_CONFIG = {
     type: Phaser.AUTO,
     width: 390,
-    height: 744,
+    height: tg.viewportHeight || 744,
     parent: 'game-container',
     physics: {
         default: 'arcade',
@@ -11,7 +18,10 @@ const GAME_CONFIG = {
             debug: false
         }
     },
-    scene: ['StartScene', 'MainGame'], // We'll update this later
+    scene: [StartScene, MainGame], // Use class references instead of strings
+    dom: {
+        createContainer: true
+    }
 };
 
 const DEPTHS = {
@@ -3702,29 +3712,8 @@ class MainGame extends Phaser.Scene {
     }
 }
 
-// At the start of your file, before the game config
-const tg = window.Telegram.WebApp;
-
-const config = {
-    type: Phaser.AUTO,
-    width: 390,
-    height: tg.viewportHeight || 744,
-    parent: 'game-container',
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 0 },
-            debug: false
-        }
-    },
-    scene: ['StartScene', 'MainGame'],
-    dom: {
-        createContainer: true   // Enable DOM elements
-    }
-};
-
 function createGame() {
-    const game = new Phaser.Game(config);
+    const game = new Phaser.Game(GAME_CONFIG);
 }
 
 WebFont.load({
