@@ -1284,6 +1284,9 @@ class MainGame extends Phaser.Scene {
         }
         graphics.generateTexture('scanlines', 100, 100);
         graphics.destroy();
+
+        this.backgroundMusic = null;
+
     }
 
     create() {
@@ -3712,20 +3715,62 @@ class MainGame extends Phaser.Scene {
     }
 }
 
+// After all your scene definitions (StartScene and MainGame)
+// and after GameChart class...
+
+// Create the game configuration
+const config = {
+    type: Phaser.AUTO,
+    width: 390,
+    height: tg.viewportHeight || 744,
+    parent: 'game-container',
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 0 },
+            debug: false
+        }
+    },
+    scene: [StartScene, MainGame],
+    dom: {
+        createContainer: true
+    },
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    }
+};
+
+// Initialize game after everything is loaded
 function createGame() {
-    const game = new Phaser.Game(GAME_CONFIG);
+    try {
+        // Initialize Telegram integration if available
+        if (window.Telegram?.WebApp) {
+            tg.ready();
+            tg.expand();
+        }
+        
+        // Create game instance
+        window.game = new Phaser.Game(config);
+        console.log('Game created successfully');
+    } catch (error) {
+        console.error('Error creating game:', error);
+    }
 }
 
-WebFont.load({
-    google: {
-        families: ['VT323']
-    },
-    active: function() {
-        console.log('VT323 font loaded successfully');
-        setTimeout(createGame, 200);
-    },
-    inactive: function() {
-        console.warn('VT323 font failed to load');
-        createGame();
-    }
+// Load font and create game
+document.addEventListener('DOMContentLoaded', () => {
+    WebFont.load({
+        google: {
+            families: ['VT323']
+        },
+        active: function() {
+            console.log('Font loaded successfully');
+            setTimeout(createGame, 500);
+        },
+        inactive: function() {
+            console.warn('Font failed to load, proceeding anyway');
+            createGame();
+        }
+    });
 });
