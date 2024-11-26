@@ -1167,6 +1167,12 @@ class MainGame extends Phaser.Scene {
         this.scoreHistory = [];
         this.lastLoggedTime = 0;
         this.scoreLoggingInterval = 250; // Log every 250ms
+        
+        // Add a property to track the timer event
+        this.gameTimer = null;
+
+        // Add this property to track the last update time
+        this.lastUpdateTime = 0;
     }
 
     init() {
@@ -1480,8 +1486,44 @@ class MainGame extends Phaser.Scene {
             loop: true
         });
 
-        // Create the cat silhouette with cool effects
-          }
+        // Initialize game time to exactly 3 minutes (180 seconds)
+        this.gameTime = GAME_SETTINGS.DURATION; // Should be 180
+
+        // Create single timer event and store reference
+        this.gameTimer = this.time.addEvent({
+            delay: 100,  // Update every 100ms for smoother countdown
+            callback: this.updateGameTime,
+            callbackScope: this,
+            loop: true
+        });
+
+        // Debug log to confirm timer creation
+        console.log('Game timer created');
+    }
+
+    updateGameTime() {
+        const currentTime = this.time.now;
+        if (!this.lastUpdateTime) {
+            this.lastUpdateTime = currentTime;
+            return;
+        }
+
+        // Calculate actual elapsed time in seconds
+        const deltaSeconds = (currentTime - this.lastUpdateTime) / 1000;
+        this.gameTime = Math.max(0, this.gameTime - deltaSeconds);
+
+        // Update timer display
+        const minutes = Math.floor(this.gameTime / 60);
+        const seconds = Math.floor(this.gameTime % 60);
+        this.timerText.setText(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+
+        this.lastUpdateTime = currentTime;
+
+        // Check end conditions if time is up
+        if (this.gameTime <= 0) {
+            this.checkEndConditions();
+        }
+    }
 
     resetMoon() {
         console.log('Resetting moon');
@@ -1689,16 +1731,6 @@ class MainGame extends Phaser.Scene {
         if (!this.gameEnded) {
             this.checkEndConditions();
         }
-
-        // Update game timer
-        if (!this.gameEnded && this.gameTime > 0) {
-            this.gameTime -= delta / 1000; // Convert delta to seconds
-            if (this.gameTime <= 0) {
-                this.gameTime = 0;
-                console.log("Timer reached zero");
-                this.checkEndConditions();
-            }
-        }
     }
 
     wrapPlayerAroundScreen() {
@@ -1727,35 +1759,6 @@ class MainGame extends Phaser.Scene {
         this.starsBack.setSpeedX({ min: contraryMovement * 13.2, max: contraryMovement * 14.2 });
         this.starsMid.setSpeedX({ min: contraryMovement * 14.5, max: contraryMovement * 15.5 });
         this.starsFront.setSpeedX({ min: contraryMovement * 15.8, max: contraryMovement * 16.8 });
-    }
-
-    updateGameTime() {
-        this.gameTime--;
-        
-        // Start epic ending sequence
-        if (this.gameTime === GAME_SETTINGS.FINAL_EPIC_START) {
-            this.startEpicEnding();
-        }
-
-        this.difficultyFactor = (this.gameConfig.duration - this.gameTime) / this.gameConfig.duration;
-        
-        // Start moon entry when appropriate
-        if (this.gameTime === this.moonConfig.startTime) {
-            console.log('Triggering moon entry');
-            this.startMoonEntry();
-        }
-
-        this.handleAsteroidExit();
-        this.handleSpawnTimers();
-        this.updateTimerDisplay();
-
-        if (this.gameTime <= 0) {
-            this.endGame();
-        }
-
-        if (this.gameTime === this.zoomConfig.startTime) {
-            this.startZoom();
-        }
     }
 
     handleAsteroidExit() {
@@ -2638,7 +2641,10 @@ class MainGame extends Phaser.Scene {
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
             const file = new File([blob], 'moon-journey.png', { type: 'image/png' });
 
-            if (navigator.share && navigator.canShare({ files: [file] })) {
+            // If in Telegram, use Telegram sharing
+            if (window.telegramIntegration) {
+                await window.telegramIntegration.shareScoreWithImage(blob);
+            } else if (navigator.share && navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     title: 'My Journey to the Moon',
                     text: `Check out my journey! Final Market Cap: $${finalScore.toLocaleString()}`,
@@ -2961,6 +2967,12 @@ class MainGame extends Phaser.Scene {
             this.chart = null;
         }
         // ... other cleanup code ...
+        
+        // Clean up timer when scene shuts down
+        if (this.gameTimer) {
+            this.gameTimer.remove();
+            this.gameTimer = null;
+        }
     }
 
     updateScore(newScore) {
@@ -3173,12 +3185,17 @@ class MainGame extends Phaser.Scene {
                 this.player.setVisible(false);
                 this.createImpactEffects();
                 
-                // Clean up particle trail
+                // Clean up particle trail - Modified this part
                 if (this.playerTrailEmitter) {
                     this.playerTrailEmitter.stop();
-                    this.time.delayedCall(1000, () => {
-                        this.playerTrailEmitter.destroy();
-                    });
+                    // Check if the emitter is part of a particle manager
+                    if (this.playerTrailEmitter.manager) {
+                        this.playerTrailEmitter.manager.destroy();
+                    } else {
+                        // If it's just the emitter, remove it from the scene
+                        this.playerTrailEmitter.remove();
+                    }
+                    this.playerTrailEmitter = null;
                 }
             }
         });
@@ -3485,7 +3502,7 @@ class MainGame extends Phaser.Scene {
             blendMode: 'ADD',
             tint: 0x00ffff
         });
-    
+
         // Fly to moon with rotation
         this.tweens.add({
             targets: this.player,
@@ -3499,183 +3516,8 @@ class MainGame extends Phaser.Scene {
                 this.player.setVisible(false);
                 this.createDollarExplosion();
                 console.log("Creating dollar explosion");
-                // Add this line to show final score after explosion
-                this.time.delayedCall(1000, () => this.showFinalScore());
             }
         });
-    }
-    
-    // Method to submit high score
-    async submitHighScore(score) {
-        const telegramUser = window.telegramIntegration?.getUserInfo();
-        if (window.database) {
-            await window.submitScore(score, telegramUser);
-            console.log('Score submitted successfully');
-
-            // Send a message to the user on Telegram
-            if (telegramUser?.id) {
-                const message = `Congratulations ${telegramUser.username}! Your score is $${score.toLocaleString()}.`;
-                await window.telegramIntegration.sendMessage(telegramUser.id, message);
-            }
-        }
-    }
-
-    // Method to show final score
-    showFinalScore() {
-        // Stop any ongoing effects
-        this.cameras.main.resetFX();
-        
-        // Create final score display
-        const centerX = this.game.config.width / 2;
-        const centerY = this.game.config.height / 2;
-
-        // Final score text with glow effect
-        const finalScoreText = this.add.text(centerX, centerY - 50, 
-            'FINAL MARKET CAP', {
-            fontFamily: 'VT323',
-            fontSize: '48px',
-            fill: '#FFD700',
-            align: 'center'
-        }).setOrigin(0.5);
-        
-        const scoreAmount = this.add.text(centerX, centerY + 50, 
-            '$' + this.score.toLocaleString(), {
-            fontFamily: 'VT323',
-            fontSize: '64px',
-            fill: '#FFD700',
-            align: 'center'
-        }).setOrigin(0.5);
-        
-        // Add glow effect
-        this.tweens.add({
-            targets: [finalScoreText, scoreAmount],
-            alpha: 0.7,
-            yoyo: true,
-            repeat: -1,
-            duration: 1000
-        });
-        
-        // Modified to handle Telegram users
-        this.time.delayedCall(2000, () => {
-            const telegramUser = window.telegramIntegration?.getUserInfo();
-            if (telegramUser?.username) {
-                // Automatically submit score for Telegram users
-                this.submitHighScore(this.score);
-                this.showPlayAgainButton(centerY + 150);
-                
-                // Add leaderboard button below Play Again
-                const leaderboardButton = this.add.text(centerX, centerY + 200,
-                    'VIEW LEADERBOARD', {
-                    fontFamily: 'VT323',
-                    fontSize: '32px',
-                    fill: '#FFD700',
-                    align: 'center'
-                })
-                .setOrigin(0.5)
-                .setInteractive();
-        
-                leaderboardButton.on('pointerdown', async () => {
-                    await this.showLeaderboard();
-                });
-            } else {
-                // Fallback to normal name input for non-Telegram users
-                this.showNameInput(centerY + 150, this.score);
-            }
-        });
-    }
-
-    // Method to show leaderboard
-    async showLeaderboard() {
-        // Clear existing UI
-        this.children.list
-            .filter(child => child instanceof Phaser.GameObjects.Text)
-            .forEach(child => child.destroy());
-
-        const centerX = this.game.config.width / 2;
-        let yPosition = 100;
-
-        // Add title
-        this.add.text(centerX, yPosition, 'TOP SCORES', {
-            fontFamily: 'VT323',
-            fontSize: '48px',
-            fill: '#FFD700'
-        }).setOrigin(0.5);
-        yPosition += 80;
-
-        try {
-            // Get top scores
-            const scores = await window.getHighScores(10);
-            
-            // Get user's best score if on Telegram
-            const telegramUser = window.telegramIntegration?.getUserInfo();
-            let userBestScore = null;
-            if (telegramUser?.id) {
-                userBestScore = await window.getUserBestScore(telegramUser.id);
-            }
-
-            // Display scores
-            scores.forEach((score, index) => {
-                const isUser = telegramUser?.username === score.name;
-                const color = isUser ? '#00FF00' : '#FFFFFF';
-                
-                this.add.text(centerX, yPosition, 
-                    `${index + 1}. ${score.name}: $${score.score.toLocaleString()}`, {
-                    fontFamily: 'VT323',
-                    fontSize: '32px',
-                    fill: color
-                }).setOrigin(0.5);
-                
-                yPosition += 40;
-            });
-
-            // Show user's best score if available
-            if (userBestScore) {
-                yPosition += 20;
-                this.add.text(centerX, yPosition, 
-                    `Your Best: $${userBestScore.toLocaleString()}`, {
-                    fontFamily: 'VT323',
-                    fontSize: '36px',
-                    fill: '#00FF00'
-                }).setOrigin(0.5);
-            }
-
-            // Add back button
-            const backButton = this.add.text(centerX, this.game.config.height - 100,
-                'BACK', {
-                fontFamily: 'VT323',
-                fontSize: '32px',
-                fill: '#FFD700'
-            })
-            .setOrigin(0.5)
-            .setInteractive();
-
-            backButton.on('pointerdown', () => {
-                this.showFinalScore();
-            });
-
-        } catch (error) {
-            console.error('Error showing leaderboard:', error);
-            // Show error message
-            this.add.text(centerX, yPosition, 
-                'Error loading leaderboard', {
-                fontFamily: 'VT323',
-                fontSize: '32px',
-                fill: '#FF0000'
-            }).setOrigin(0.5);
-        }
-    }
-    
-    submitHighScore(score) {
-        const telegramUser = window.telegramIntegration?.getUserInfo();
-        if (window.database) {
-            window.submitScore(score, telegramUser)
-                .then(() => {
-                    console.log('Score submitted successfully');
-                })
-                .catch(error => {
-                    console.error('Error submitting score:', error);
-                });
-        }
     }
 
     createDollarExplosion() {
@@ -3705,18 +3547,6 @@ class MainGame extends Phaser.Scene {
         });
     }
 
-    async submitHighScore(score) {
-        const telegramUser = window.telegramIntegration?.getUserInfo();
-        
-        // Submit to Firebase
-        await window.submitScore(score, telegramUser);
-        
-        // Share score in Telegram
-        if (window.telegramIntegration) {
-            await window.telegramIntegration.shareScore(score);
-        }
-    }
-
     showFinalScore() {
         // Stop any ongoing effects
         this.cameras.main.resetFX();
@@ -3751,218 +3581,10 @@ class MainGame extends Phaser.Scene {
             duration: 1000
         });
         
-        // Modified to handle Telegram users
+        // Add "Enter Name" button after a short delay
         this.time.delayedCall(2000, () => {
-            const telegramUser = window.telegramIntegration?.getUserInfo();
-            if (telegramUser?.username) {
-                // Automatically submit score for Telegram users
-                this.submitHighScore(this.score);
-                this.showPlayAgainButton(centerY + 150);
-                
-                // Add leaderboard button below Play Again
-                const leaderboardButton = this.add.text(centerX, centerY + 200,
-                    'VIEW LEADERBOARD', {
-                    fontFamily: 'VT323',
-                    fontSize: '32px',
-                    fill: '#FFD700',
-                    align: 'center'
-                })
-                .setOrigin(0.5)
-                .setInteractive();
-
-                leaderboardButton.on('pointerdown', async () => {
-                    await this.showLeaderboard();
-                });
-            } else {
-                // Fallback to normal name input for non-Telegram users
-                this.showNameInput(centerY + 150, this.score);
-            }
+            this.showNameInput(centerY + 150, this.score);
         });
-    }
-    
-    async showLeaderboard() {
-        // Clear existing UI
-        this.children.list
-            .filter(child => child instanceof Phaser.GameObjects.Text)
-            .forEach(child => child.destroy());
-
-        const centerX = this.game.config.width / 2;
-        let yPosition = 100;
-
-        // Add title
-        this.add.text(centerX, yPosition, 'TOP SCORES', {
-            fontFamily: 'VT323',
-            fontSize: '48px',
-            fill: '#FFD700'
-        }).setOrigin(0.5);
-        yPosition += 80;
-
-        try {
-            // Get top scores
-            const scores = await window.getHighScores(10);
-            
-            // Get user's best score if on Telegram
-            const telegramUser = window.telegramIntegration?.getUserInfo();
-            let userBestScore = null;
-            if (telegramUser?.id) {
-                userBestScore = await window.getUserBestScore(telegramUser.id);
-            }
-
-            // Display scores
-            scores.forEach((score, index) => {
-                const isUser = telegramUser?.username === score.name;
-                const color = isUser ? '#00FF00' : '#FFFFFF';
-                
-                this.add.text(centerX, yPosition, 
-                    `${index + 1}. ${score.name}: $${score.score.toLocaleString()}`, {
-                    fontFamily: 'VT323',
-                    fontSize: '32px',
-                    fill: color
-                }).setOrigin(0.5);
-                
-                yPosition += 40;
-            });
-
-            // Show user's best score if available
-            if (userBestScore) {
-                yPosition += 20;
-                this.add.text(centerX, yPosition, 
-                    `Your Best: $${userBestScore.toLocaleString()}`, {
-                    fontFamily: 'VT323',
-                    fontSize: '36px',
-                    fill: '#00FF00'
-                }).setOrigin(0.5);
-            }
-
-            // Add back button
-            const backButton = this.add.text(centerX, this.game.config.height - 100,
-                'BACK', {
-                fontFamily: 'VT323',
-                fontSize: '32px',
-                fill: '#FFD700'
-            })
-            .setOrigin(0.5)
-            .setInteractive();
-
-            backButton.on('pointerdown', () => {
-                this.showFinalScore();
-            });
-
-        } catch (error) {
-            console.error('Error showing leaderboard:', error);
-            // Show error message
-            this.add.text(centerX, yPosition, 
-                'Error loading leaderboard', {
-                fontFamily: 'VT323',
-                fontSize: '32px',
-                fill: '#FF0000'
-            }).setOrigin(0.5);
-        }
-    }
-    
-    // Method to create an image of the leaderboard
-    async createLeaderboardImage(scores) {
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        const width = 400; // Set the desired width
-        const height = 600; // Set the desired height
-        canvas.width = width;
-        canvas.height = height;
-
-        // Set background color
-        context.fillStyle = '#000'; // Black background
-        context.fillRect(0, 0, width, height);
-
-        // Set text styles
-        context.fillStyle = '#FFD700'; // Gold color for text
-        context.font = '24px VT323'; // Use the same font as in the game
-
-        // Draw title
-        context.fillText('🏆 Leaderboard', 50, 50);
-
-        // Draw scores
-        scores.forEach((score, index) => {
-            context.fillText(`${index + 1}. ${score.name}: $${score.score.toLocaleString()}`, 50, 100 + index * 30);
-        });
-
-        // Convert canvas to data URL
-        const imageDataUrl = canvas.toDataURL('image/png');
-
-        return imageDataUrl;
-    }
-
-    // Method to share the leaderboard
-    async shareLeaderboard(scores) {
-        const imageDataUrl = await this.createLeaderboardImage(scores);
-
-        if (window.telegramIntegration) {
-            await window.telegramIntegration.shareScoreWithImage(imageDataUrl); // Share the leaderboard image
-        }
-    }
-
-    // Method to share game results (individual score)
-    async shareGameResults(playerName, finalScore) {
-        try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 1200;
-            canvas.height = 675;
-
-            // Draw semi-transparent dark background
-            ctx.fillStyle = 'rgba(26, 26, 26, 0.85)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw background image with reduced opacity
-            const background = this.textures.get('background').getSourceImage();
-            ctx.globalAlpha = 0.2;
-            ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-            ctx.globalAlpha = 1.0;
-
-            // Draw logo at the top
-            const logo = this.textures.get('logo').getSourceImage();
-            ctx.drawImage(logo, canvas.width / 2 - 200, 20, 400, 100);
-
-            // Add text at the bottom
-            ctx.font = '40px VT323';
-            ctx.fillStyle = '#00ff00';
-            ctx.textAlign = 'center';
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 4;
-
-            const text1 = `${playerName}'s Journey to the Moon`;
-            const text2 = `Final Market Cap: $${finalScore.toLocaleString()}`;
-
-            ctx.strokeText(text1, canvas.width / 2, canvas.height - 100);
-            ctx.fillText(text1, canvas.width / 2, canvas.height - 100);
-            ctx.strokeText(text2, canvas.width / 2, canvas.height - 50);
-            ctx.fillText(text2, canvas.width / 2, canvas.height - 50);
-
-            // Create blob and share
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            const file = new File([blob], 'moon-journey.png', { type: 'image/png' });
-
-            // Share the score image
-            if (navigator.share && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    title: 'My Journey to the Moon',
-                    text: `Check out my journey! Final Market Cap: $${finalScore.toLocaleString()}`,
-                    files: [file]
-                });
-            } else {
-                // Fallback for browsers that don't support sharing
-                const link = document.createElement('a');
-                link.download = 'moon-journey.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            }
-        } catch (err) {
-            console.error('Error generating share image:', err);
-            // Fallback to basic download if sharing fails
-            const link = document.createElement('a');
-            link.download = 'moon-journey.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }
     }
 
     // Modify the checkEndConditions to handle timing better
@@ -4044,157 +3666,15 @@ class MainGame extends Phaser.Scene {
             loop: true
         });
     }
-
-    // Add the showFinalScore method here
-    showFinalScore() {
-        // Stop any ongoing effects
-        this.cameras.main.resetFX();
-        
-        const centerX = this.game.config.width / 2;
-        const centerY = this.game.config.height / 2;
-        
-        // Final score text with glow effect
-        const finalScoreText = this.add.text(centerX, centerY - 50, 
-            'FINAL MARKET CAP', {
-            fontFamily: 'VT323',
-            fontSize: '48px',
-            fill: '#FFD700',
-            align: 'center'
-        }).setOrigin(0.5);
-        
-        const scoreAmount = this.add.text(centerX, centerY + 50, 
-            '$' + this.score.toLocaleString(), {
-            fontFamily: 'VT323',
-            fontSize: '64px',
-            fill: '#FFD700',
-            align: 'center'
-        }).setOrigin(0.5);
-        
-        // Add glow effect
-        this.tweens.add({
-            targets: [finalScoreText, scoreAmount],
-            alpha: 0.7,
-            yoyo: true,
-            repeat: -1,
-            duration: 1000
-        });
-        
-        // Modified to handle Telegram users
-        this.time.delayedCall(2000, () => {
-            const telegramUser = window.telegramIntegration?.getUserInfo();
-            if (telegramUser?.username) {
-                // Automatically submit score for Telegram users
-                this.submitHighScore(this.score);
-                this.showPlayAgainButton(centerY + 150);
-                
-                // Add leaderboard button below Play Again
-                const leaderboardButton = this.add.text(centerX, centerY + 200,
-                    'VIEW LEADERBOARD', {
-                    fontFamily: 'VT323',
-                    fontSize: '32px',
-                    fill: '#FFD700',
-                    align: 'center'
-                })
-                .setOrigin(0.5)
-                .setInteractive();
-
-                leaderboardButton.on('pointerdown', async () => {
-                    await this.showLeaderboard();
-                });
-            } else {
-                // Fallback to normal name input for non-Telegram users
-                this.showNameInput(centerY + 150, this.score);
-            }
-        });
-    }
-
-    // Add the showLeaderboard method right after
-    async showLeaderboard() {
-        // Clear existing UI
-        this.children.list
-            .filter(child => child instanceof Phaser.GameObjects.Text)
-            .forEach(child => child.destroy());
-
-        const centerX = this.game.config.width / 2;
-        let yPosition = 100;
-
-        // Add title
-        this.add.text(centerX, yPosition, 'TOP SCORES', {
-            fontFamily: 'VT323',
-            fontSize: '48px',
-            fill: '#FFD700'
-        }).setOrigin(0.5);
-        yPosition += 80;
-
-        try {
-            // Get top scores
-            const scores = await window.getHighScores(10);
-            
-            // Get user's best score if on Telegram
-            const telegramUser = window.telegramIntegration?.getUserInfo();
-            let userBestScore = null;
-            if (telegramUser?.id) {
-                userBestScore = await window.getUserBestScore(telegramUser.id);
-            }
-
-            // Display scores
-            scores.forEach((score, index) => {
-                const isUser = telegramUser?.username === score.name;
-                const color = isUser ? '#00FF00' : '#FFFFFF';
-                
-                this.add.text(centerX, yPosition, 
-                    `${index + 1}. ${score.name}: $${score.score.toLocaleString()}`, {
-                    fontFamily: 'VT323',
-                    fontSize: '32px',
-                    fill: color
-                }).setOrigin(0.5);
-                
-                yPosition += 40;
-            });
-
-            // Show user's best score if available
-            if (userBestScore) {
-                yPosition += 20;
-                this.add.text(centerX, yPosition, 
-                    `Your Best: $${userBestScore.toLocaleString()}`, {
-                    fontFamily: 'VT323',
-                    fontSize: '36px',
-                    fill: '#00FF00'
-                }).setOrigin(0.5);
-            }
-
-            // Add back button
-            const backButton = this.add.text(centerX, this.game.config.height - 100,
-                'BACK', {
-                fontFamily: 'VT323',
-                fontSize: '32px',
-                fill: '#FFD700'
-            })
-            .setOrigin(0.5)
-            .setInteractive();
-
-            backButton.on('pointerdown', () => {
-                this.showFinalScore();
-            });
-
-        } catch (error) {
-            console.error('Error showing leaderboard:', error);
-            // Show error message
-            this.add.text(centerX, yPosition, 
-                'Error loading leaderboard', {
-                fontFamily: 'VT323',
-                fontSize: '32px',
-                fill: '#FF0000'
-            }).setOrigin(0.5);
-        }
-    }
 }
 
-// Initialize the game
+// At the start of your file, before the game config
+const tg = window.Telegram.WebApp;
+
 const config = {
     type: Phaser.AUTO,
     width: 390,
-    height: 744,
+    height: tg.viewportHeight || 744,
     parent: 'game-container',
     physics: {
         default: 'arcade',
@@ -4203,7 +3683,7 @@ const config = {
             debug: false
         }
     },
-    scene: [StartScene, MainGame],
+    scene: ['StartScene', 'MainGame'],
     dom: {
         createContainer: true   // Enable DOM elements
     }
@@ -4213,7 +3693,6 @@ function createGame() {
     const game = new Phaser.Game(config);
 }
 
-// Load fonts and start the game
 WebFont.load({
     google: {
         families: ['VT323']
