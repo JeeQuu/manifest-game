@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="HandheldFriendly" content="true">
+    <title>Manifest Cat-astronaut Game</title>
+    
+    <!-- Add Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Load Phaser and WebFont.js first -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    
+    <!-- Load VT323 font instead -->
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+        }
+        
+        #font-test {
+            font-family: 'VT323', monospace;
+            color: white;
+            position: absolute;
+            top: 0;
+            left: 0;
+            visibility: hidden;
+        }
+    </style>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+    <!-- Add a test element to force font loading -->
+    <div id="font-test">Test</div>
+    
+    <div id="game-container"></div>
+    
+    <!-- Add telegram-integration.js before other scripts -->
+    <script src="telegram-integration.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="powerups.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
