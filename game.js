@@ -358,29 +358,46 @@ class StartScene extends Phaser.Scene {
     }
 
     preload() {
-        // Create a loading bar
-        let loadingBar = this.add.graphics({
-            fillStyle: {
-                color: 0xffffff // White color
-            }
-        });
+        try {
+            // Create a loading bar
+            let loadingBar = this.add.graphics({
+                fillStyle: {
+                    color: 0xffffff
+                }
+            });
 
-        this.load.on('progress', (percent) => {
-            loadingBar.fillRect(0, this.game.renderer.height / 2, this.game.renderer.width * percent, 50);
-        });
+            // Add error handling for load events
+            this.load.on('loaderror', (file) => {
+                console.error('Error loading file:', file.src);
+            });
 
-        this.load.on('complete', () => {
-            loadingBar.destroy();
-        });
+            this.load.on('progress', (percent) => {
+                loadingBar.fillRect(0, this.game.renderer.height / 2, this.game.renderer.width * percent, 50);
+            });
 
-        // Load all images
-        for (const [key, value] of Object.entries(ASSETS.images)) {
-            this.load.image(key, value);
-        }
+            this.load.on('complete', () => {
+                loadingBar.destroy();
+            });
 
-        // Load all audio
-        for (const [key, value] of Object.entries(ASSETS.audio)) {
-            this.load.audio(key, value);
+            // Load assets with error handling
+            Object.entries(ASSETS.images).forEach(([key, value]) => {
+                try {
+                    this.load.image(key, value);
+                } catch (error) {
+                    console.error(`Error loading image ${key}:`, error);
+                }
+            });
+
+            Object.entries(ASSETS.audio).forEach(([key, value]) => {
+                try {
+                    this.load.audio(key, value);
+                } catch (error) {
+                    console.error(`Error loading audio ${key}:`, error);
+                }
+            });
+
+        } catch (error) {
+            console.error('Error in preload:', error);
         }
 
         // Add any other preload code here (e.g., scanlines)
@@ -1205,29 +1222,46 @@ class MainGame extends Phaser.Scene {
     }
 
     preload() {
-        // Create a loading bar
-        let loadingBar = this.add.graphics({
-            fillStyle: {
-                color: 0xffffff // White color
-            }
-        });
+        try {
+            // Create a loading bar
+            let loadingBar = this.add.graphics({
+                fillStyle: {
+                    color: 0xffffff
+                }
+            });
 
-        this.load.on('progress', (percent) => {
-            loadingBar.fillRect(0, this.game.renderer.height / 2, this.game.renderer.width * percent, 50);
-        });
+            // Add error handling for load events
+            this.load.on('loaderror', (file) => {
+                console.error('Error loading file:', file.src);
+            });
 
-        this.load.on('complete', () => {
-            loadingBar.destroy();
-        });
+            this.load.on('progress', (percent) => {
+                loadingBar.fillRect(0, this.game.renderer.height / 2, this.game.renderer.width * percent, 50);
+            });
 
-        // Load all images
-        for (const [key, value] of Object.entries(ASSETS.images)) {
-            this.load.image(key, value);
-        }
+            this.load.on('complete', () => {
+                loadingBar.destroy();
+            });
 
-        // Load all audio
-        for (const [key, value] of Object.entries(ASSETS.audio)) {
-            this.load.audio(key, value);
+            // Load assets with error handling
+            Object.entries(ASSETS.images).forEach(([key, value]) => {
+                try {
+                    this.load.image(key, value);
+                } catch (error) {
+                    console.error(`Error loading image ${key}:`, error);
+                }
+            });
+
+            Object.entries(ASSETS.audio).forEach(([key, value]) => {
+                try {
+                    this.load.audio(key, value);
+                } catch (error) {
+                    console.error(`Error loading audio ${key}:`, error);
+                }
+            });
+
+        } catch (error) {
+            console.error('Error in preload:', error);
         }
 
         // Add any other preload code here (e.g., scanlines)
