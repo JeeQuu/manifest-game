@@ -1225,8 +1225,7 @@ class MainGame extends Phaser.Scene {
         this.isSuperBonusActive = false;
         this.totalDollarSigns = 0;
         this.collectedDollarSigns = 0;
-        this.dollarsCollected = 0;
-        
+        this.dollarsCollected = 0;        
         // Reset background speed
         this.currentBackgroundSpeed = this.baseBackgroundSpeed;
     }
@@ -3731,7 +3730,7 @@ const config = {
             debug: false
         }
     },
-    scene: [StartScene, MainGame],
+    scene: [StartScene, MainGame], // Now these classes exist!
     dom: {
         createContainer: true
     },
