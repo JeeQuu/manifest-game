@@ -3,2275 +3,2275 @@ console.log('StartScene exists:', typeof StartScene !== 'undefined');
 console.log('MainGame exists:', typeof MainGame !== 'undefined');
 console.log('Telegram exists:', typeof window.Telegram !== 'undefined');
 
-    // Initialize Telegram Web App (with fallback)
-    const tg = window.Telegram?.WebApp || {
-        viewportHeight: 744,
-        ready: () => {},
-        expand: () => {}
-    };
+// Initialize Telegram Web App (with fallback)
+const tg = window.Telegram?.WebApp || {
+    viewportHeight: 744,
+    ready: () => {},
+    expand: () => {}
+};
 
-    // Game constants and configurations
-    const GAME_CONFIG = {
-        type: Phaser.AUTO,
-        width: 390,
-        height: tg.viewportHeight || 744,
-        parent: 'game-container',
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { y: 0 },
-                debug: false
-            }
-        },
-        scene: [StartScene, MainGame], // Use class references instead of strings
-        dom: {
-            createContainer: true
+// Game constants and configurations
+const GAME_CONFIG = {
+    type: Phaser.AUTO,
+    width: 390,
+    height: tg.viewportHeight || 744,
+    parent: 'game-container',
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 0 },
+            debug: false
         }
-    };
+    },
+    scene: [StartScene, MainGame], // Use class references instead of strings
+    dom: {
+        createContainer: true
+    }
+};
 
-    const DEPTHS = {
-        BACKGROUND: 1,
-        STARS: 2,
-        MOON: 3,
-        CANDLES: 4,
-        POWERUPS: 5,
-        METEORS: 6,
-        PLAYER: 7,
-        LASER: 8,
-        DOLLARS: 9,
-        PARTICLES: 10,
-        UI: 1000
-    };
+const DEPTHS = {
+    BACKGROUND: 1,
+    STARS: 2,
+    MOON: 3,
+    CANDLES: 4,
+    POWERUPS: 5,
+    METEORS: 6,
+    PLAYER: 7,
+    LASER: 8,
+    DOLLARS: 9,
+    PARTICLES: 10,
+    UI: 1000
+};
 
-    const GAME_SETTINGS = {
-        DURATION: 180,            // 3 minutes in seconds
-        SPAWN_STOP_TIME: 7,      // Changed from 20 to 7 seconds
-        RED_CANDLE_DELAY: 10,     // Seconds before red candles appear
-        METEOR_START_TIME: 100,   // When meteors start appearing
-        MOON_START_TIME: 20,      // When moon appears
-        BACKGROUND_SPEED: 1,
-        WHALE_START_TIME: 120,    // Appears at 2 minutes (changed from later timing)
-        FINAL_EPIC_START: 7,     // New setting for when epic ending begins
-        SPIN_START_TIME: 6,      // When cat starts spinning
-        FINAL_IMPACT_TIME: 1,    // When cat hits the moon
-    };
+const GAME_SETTINGS = {
+    DURATION: 180,            // 3 minutes in seconds
+    SPAWN_STOP_TIME: 7,      // Changed from 20 to 7 seconds
+    RED_CANDLE_DELAY: 10,     // Seconds before red candles appear
+    METEOR_START_TIME: 100,   // When meteors start appearing
+    MOON_START_TIME: 20,      // When moon appears
+    BACKGROUND_SPEED: 1,
+    WHALE_START_TIME: 120,    // Appears at 2 minutes (changed from later timing)
+    FINAL_EPIC_START: 7,     // New setting for when epic ending begins
+    SPIN_START_TIME: 6,      // When cat starts spinning
+    FINAL_IMPACT_TIME: 1,    // When cat hits the moon
+};
 
-    // Assets Constants
-    const ASSETS = {
-        images: {
-            logo: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729893119/manifest_tan2_sywd7p.png',
-            silhouette: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1724441964/Motiv_klvaxf.png',
-            background: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1730155499/STARS2.png',
-            pepe: 'https://res.cloudinary.com/dakoxedxt/image/upload/c_scale,h_212,w_212/v1728736483/pepe_xyab37.png',
-            whale: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510453/manifest_gfx/whale_cr2exw.png',
-            rugpull: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510455/manifest_gfx/rugpull_hesbgp.png',
-            player: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729030217/plane_xxohue.png',
-            planeglasses: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729030217/planeglasses_vl0umv.png',
-            greenShort: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510459/manifest_gfx/green_short_mbabga.png',
-            greenMid: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510456/manifest_gfx/green_mid_vgqebi.png',
-            greenTall: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510459/manifest_gfx/green_tall_tzkmng.png',
-            redShort: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510463/manifest_gfx/red_short_ewfbrz.png',
-            redMid: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510461/manifest_gfx/red_mid_hkc2ug.png',
-            redTall: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510464/manifest_gfx/red_tall_cmnd9r.png',
-            particle: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729694664/particle_iaw5tj.png',
-            meteor: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510448/manifest_gfx/meteor_hwqcpd.png',
-            moonglasses: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510451/manifest_gfx/moonglasses_brxcmp.png',
-            dollar: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510442/manifest_gfx/dollar_saopsw.png',
-            moon: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510451/manifest_gfx/moon_q5nahl.png',
-            crystalball: 'https://res.cloudinary.com/dakoxedxt/image/upload/c_scale,w_256/v1728930035/crystalballe.png',
-            dollar_icon: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510442/manifest_gfx/dollar_saopsw.png',
-            planepepe: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729030217/planepepe_rwearr.png',
-            x1: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489260/X_cdqipt.png',
-            x2: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489260/X2_mxzksl.png',
-            x3: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489260/X3_y7z7lt.png',
-            x4: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X4_efc8xu.png',
-            x5: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X5_e9ea61.png',
-            x6: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X6_afpnfx.png',
-            x7: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X7_i48473.png',
-            x8: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X8_smgi61.png',
-            x9: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X9_gjpyr2.png',
-            x10: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X10_wfrabs.png'
-            // Add any other images here
-        },
-        audio: {
-            tally: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1729946809/ALT_PLOCK_l28ue0.wav',
-            pepe_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728907674/pepe_fi58nm.mp3',
-            whale_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728913134/whale_flfzyb.mp3',
-            rugpull_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728907678/rugged.mp3',
-            laser_explosion: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1729973984/SHOOTBIG_fak81w.wav',
-            moonglasses_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728917143/sunglasses_aw3asa.mp3',
-            dollar_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728913133/dollar_rocxix.mp3',
-            green1: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833360/green1_s5xlbm.mp3',
-            green2: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833359/green2_kwmwgo.mp3',
-            green3: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833360/green3_n0q38n.mp3',
-            green4: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833361/green5_jad7gt.mp3',
-            green5: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833361/green6_xnskdb.mp3',
-            green6: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833362/green7_tobp7t.mp3',
-            green7: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833362/green8_xir7tf.mp3',
-            green8: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833362/green9_qorcv6.mp3',
-            red1: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833365/red1_aory7m.mp3',
-            red2: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833365/red2_ga95ij.mp3',
-            red3: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833365/red3_u3ezym.mp3',
-            red4: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833366/red4_c0gqbm.mp3',
-            red5: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833367/red5_wvqioz.mp3',
-            red6: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833367/red6_oo9ijf.mp3',
-            red7: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833368/red7_k9srq3.mp3',
-            red8: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833368/red8_s8hjtk.mp3',
-            backgroundMusic: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833367/neon_dreams_1_xi1ydj.mp3',
-            meteorSound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728913134/meteor_f0hear.mp3',
-            crystalBall_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728913134/crystalbewith_uvfp0b.mp3',
-            final_dollar_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728906769/U_MADE_ITOUTCAST_SFX_bu5jav.wav'
-            // Add any other audio here
-        }
-    };
+// Assets Constants
+const ASSETS = {
+    images: {
+        logo: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729893119/manifest_tan2_sywd7p.png',
+        silhouette: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1724441964/Motiv_klvaxf.png',
+        background: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1730155499/STARS2.png',
+        pepe: 'https://res.cloudinary.com/dakoxedxt/image/upload/c_scale,h_212,w_212/v1728736483/pepe_xyab37.png',
+        whale: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510453/manifest_gfx/whale_cr2exw.png',
+        rugpull: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510455/manifest_gfx/rugpull_hesbgp.png',
+        player: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729030217/plane_xxohue.png',
+        planeglasses: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729030217/planeglasses_vl0umv.png',
+        greenShort: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510459/manifest_gfx/green_short_mbabga.png',
+        greenMid: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510456/manifest_gfx/green_mid_vgqebi.png',
+        greenTall: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510459/manifest_gfx/green_tall_tzkmng.png',
+        redShort: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510463/manifest_gfx/red_short_ewfbrz.png',
+        redMid: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510461/manifest_gfx/red_mid_hkc2ug.png',
+        redTall: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510464/manifest_gfx/red_tall_cmnd9r.png',
+        particle: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729694664/particle_iaw5tj.png',
+        meteor: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510448/manifest_gfx/meteor_hwqcpd.png',
+        moonglasses: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510451/manifest_gfx/moonglasses_brxcmp.png',
+        dollar: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510442/manifest_gfx/dollar_saopsw.png',
+        moon: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510451/manifest_gfx/moon_q5nahl.png',
+        crystalball: 'https://res.cloudinary.com/dakoxedxt/image/upload/c_scale,w_256/v1728930035/crystalballe.png',
+        dollar_icon: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729510442/manifest_gfx/dollar_saopsw.png',
+        planepepe: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1729030217/planepepe_rwearr.png',
+        x1: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489260/X_cdqipt.png',
+        x2: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489260/X2_mxzksl.png',
+        x3: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489260/X3_y7z7lt.png',
+        x4: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X4_efc8xu.png',
+        x5: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X5_e9ea61.png',
+        x6: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X6_afpnfx.png',
+        x7: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X7_i48473.png',
+        x8: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X8_smgi61.png',
+        x9: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X9_gjpyr2.png',
+        x10: 'https://res.cloudinary.com/dakoxedxt/image/upload/v1731489259/X10_wfrabs.png'
+        // Add any other images here
+    },
+    audio: {
+        tally: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1729946809/ALT_PLOCK_l28ue0.wav',
+        pepe_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728907674/pepe_fi58nm.mp3',
+        whale_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728913134/whale_flfzyb.mp3',
+        rugpull_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728907678/rugged.mp3',
+        laser_explosion: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1729973984/SHOOTBIG_fak81w.wav',
+        moonglasses_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728917143/sunglasses_aw3asa.mp3',
+        dollar_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728913133/dollar_rocxix.mp3',
+        green1: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833360/green1_s5xlbm.mp3',
+        green2: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833359/green2_kwmwgo.mp3',
+        green3: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833360/green3_n0q38n.mp3',
+        green4: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833361/green5_jad7gt.mp3',
+        green5: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833361/green6_xnskdb.mp3',
+        green6: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833362/green7_tobp7t.mp3',
+        green7: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833362/green8_xir7tf.mp3',
+        green8: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833362/green9_qorcv6.mp3',
+        red1: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833365/red1_aory7m.mp3',
+        red2: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833365/red2_ga95ij.mp3',
+        red3: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833365/red3_u3ezym.mp3',
+        red4: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833366/red4_c0gqbm.mp3',
+        red5: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833367/red5_wvqioz.mp3',
+        red6: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833367/red6_oo9ijf.mp3',
+        red7: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833368/red7_k9srq3.mp3',
+        red8: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833368/red8_s8hjtk.mp3',
+        backgroundMusic: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1730833367/neon_dreams_1_xi1ydj.mp3',
+        meteorSound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728913134/meteor_f0hear.mp3',
+        crystalBall_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728913134/crystalbewith_uvfp0b.mp3',
+        final_dollar_sound: 'https://res.cloudinary.com/dakoxedxt/video/upload/v1728906769/U_MADE_ITOUTCAST_SFX_bu5jav.wav'
+        // Add any other audio here
+    }
+};
 
-    // Add after your constants (GAME_CONFIG, DEPTHS, ASSETS) but before scene definitions
-    class GameChart {
-        constructor(scene) {
-            this.scene = scene;
-            this.container = scene.add.container(0, 0);
-            this.container.setDepth(DEPTHS.BACKGROUND + 0.5);
-            
-            // Increase virtual width to show more of the graph (increased from 1x to 3x)
-            this.virtualWidth = scene.game.config.width * 3;
-            this.height = scene.game.config.height * 0.8;
-            this.viewportWidth = scene.game.config.width;
-            
-            // Reduce scroll speed to make the graph move slower
-            this.scrollSpeed = 0.8;
-            
-            this.points = [];
-            this.maxPoints = 50;  // Reduce number of visible points for smoother appearance
-            this.minValue = 0;
-            this.maxValue = 100;
-            
-            // Add smoothing factor for more dynamic movement
-            this.smoothingFactor = 0.3;  // Add smoothing factor for curves
-            this.elasticityFactor = 0.35; // Slightly increased for more responsive movement
-            
-            this.velocities = [];
-            
-            this.lineGraphics = scene.add.graphics();
-            this.glowGraphics = scene.add.graphics();
-            this.container.add([this.glowGraphics, this.lineGraphics]);
-            
-            this.container.setPosition(0, scene.game.config.height * 0.15); // Start at 15% from top
-            
-            scene.events.on('update', this.update, this);
-            scene.events.once('shutdown', this.destroy, this);
-            
-            this.lastValue = null;
-            this.minValueChange = 0.0001;
-            
-            // Add new properties for better scaling
-            this.scaleAdjustmentSpeed = 0.1;  // How quickly the scale adjusts
-            this.minScaleRange = 5000;        // Increased minimum range for better visibility
-            this.targetMaxValue = this.maxValue;
-            this.targetMinValue = this.minValue;
-            
-            // Add new property to store all historical points
-            this.historicalPoints = [];
-            this.maxHistoricalPoints = 100; // Adjust this for smoother/longer chart
-            
-            // Add property to store significant events (optional)
-            this.events = [];
-            
-            // Adjust update interval
-            this.updateInterval = 10000; // Reduced to 10 seconds for more frequent updates
-            this.lastUpdateTime = Date.now();
-            this.pendingValue = null;
-            
-            // Reduce smoothing window
-            this.smoothingWindow = 2; // Reduced from 3 for less averaging
-        }
-
-        getYPosition(value) {
-            const normalizedValue = (value - this.minValue) / (this.maxValue - this.minValue);
-            return this.height - (normalizedValue * this.height);
-        }
-
-        addDataPoint(value) {
-            // Add debug logging
-            console.log('Adding data point:', value);
-
-            // Ensure value changes are meaningful
-            const minChange = this.minValueChange || 0.0001;
-            if (this.lastValue !== null && Math.abs(value - this.lastValue) < minChange) {
-                return; // Skip if change is too small
-            }
-            this.lastValue = value;
-
-            // Add some organic movement
-            const randomVariation = 1 + (Math.random() * 0.1 - 0.05); // ±5% random variation
-            value *= randomVariation;
-
-            // Add intermediate points for smoother transitions
-            if (this.points.length > 0) {
-                const lastPoint = this.points[this.points.length - 1];
-                const steps = 3; // Number of intermediate points
-                for (let i = 1; i <= steps; i++) {
-                    const progress = i / (steps + 1);
-                    const intermediateValue = lastPoint.currentY + (value - lastPoint.currentY) * progress;
-                    // Add slight random variation to intermediate points
-                    const smoothRandomFactor = 1 + (Math.random() * 0.02 - 0.01); // ±1% variation
-                    this.points.push({
-                        x: this.virtualWidth - ((steps - i + 1) * (this.scrollSpeed * 5)),
-                        targetY: intermediateValue * smoothRandomFactor,
-                        currentY: intermediateValue * smoothRandomFactor
-                    });
-                    this.velocities.push(0);
-                }
-            }
-
-            // Add the actual point
-            const point = {
-                x: this.virtualWidth,
-                targetY: value,
-                currentY: this.points.length > 0 ? this.points[this.points.length - 1].currentY : value
-            };
-            
-            this.points.push(point);
-            this.velocities.push(0);
-            
-            // Trim points if needed
-            while (this.points.length > this.maxPoints) {
-                this.points.shift();
-                this.velocities.shift();
-            }
-
-            // Update scale dynamically
-            this.targetMaxValue = Math.max(value * 1.1, this.targetMaxValue);
-            this.targetMinValue = Math.min(value * 0.9, this.targetMinValue);
-        }
-
-        drawLine() {
-            this.lineGraphics.clear();
-            this.glowGraphics.clear();
-            
-            if (this.points.length < 2) return;
-            
-            // Single, subtle glow layer
-            this.glowGraphics.lineStyle(8, 0x4169E1, 0.05);  // Very faint blue glow
-            this.drawCurve(this.glowGraphics);
-            
-            // Main line - thin and semi-transparent
-            this.lineGraphics.lineStyle(1, 0x00FFFF, 0.2);   // Cyan with 20% opacity
-            this.drawCurve(this.lineGraphics);
-        }
-
-        drawCurve(graphics) {
-            if (this.points.length < 2) return;
-            
-            // Start the path
-            graphics.beginPath();
-            
-            // Move to first point
-            const firstPoint = this.points[0];
-            graphics.moveTo(firstPoint.x, this.getYPosition(firstPoint.currentY));
-            
-            // Draw lines to each subsequent point
-            for (let i = 1; i < this.points.length; i++) {
-                const current = this.points[i];
-                graphics.lineTo(
-                    current.x,
-                    this.getYPosition(current.currentY)
-                );
-            }
-            
-            graphics.strokePath();
-        }
-
-        update() {
-            // Smooth scale adjustment
-            this.maxValue += (this.targetMaxValue - this.maxValue) * this.scaleAdjustmentSpeed;
-            this.minValue += (this.targetMinValue - this.minValue) * this.scaleAdjustmentSpeed;
-            
-            // Scroll points
-            this.points.forEach(point => {
-                point.x -= this.scrollSpeed;
-            });
-            
-            // Update point positions with enhanced elastic movement
-            this.points.forEach((point, index) => {
-                const targetY = point.targetY;
-                const dy = targetY - point.currentY;
-                
-                this.velocities[index] += dy * this.elasticityFactor;
-                this.velocities[index] *= (1 - this.smoothingFactor);
-                point.currentY += this.velocities[index];
-            });
-            
-            this.drawLine();
-        }
-
-        destroy() {
-            this.scene.events.off('update', this.update, this);
-            this.container.destroy();
-        }
-
-        // Update the sharing chart generation
-        generateSharingChart(width = 800, height = 400) {
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-
-            // Clear canvas
-            ctx.clearRect(0, 0, width, height);
-
-            if (this.historicalPoints.length < 2) return canvas;
-
-            // Calculate min/max for proper scaling
-            const values = this.historicalPoints.map(p => p.value);
-            const minValue = Math.min(...values) * 0.9;
-            const maxValue = Math.max(...values) * 1.1;
-            const valueRange = maxValue - minValue;
-
-            // Draw the line with multiple passes for glow effect
-            const drawLine = (lineWidth, color, alpha) => {
-                ctx.beginPath();
-                ctx.strokeStyle = color;
-                ctx.lineWidth = lineWidth;
-                ctx.globalAlpha = alpha;
-
-                this.historicalPoints.forEach((point, index) => {
-                    const x = (index / (this.historicalPoints.length - 1)) * width;
-                    const normalizedValue = (point.value - minValue) / valueRange;
-                    const y = height - (normalizedValue * height);
-
-                    if (index === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                });
-                ctx.stroke();
-            };
-
-            // Full opacity for share image
-            drawLine(20, 'rgba(0, 255, 255, 0.1)');
-            drawLine(12, 'rgba(0, 255, 255, 0.2)');
-            drawLine(6, 'rgba(0, 255, 255, 0.3)');
-            drawLine(3, 'rgba(0, 255, 255, 1.0)');
-
-            return canvas;
-        }
+// Add after your constants (GAME_CONFIG, DEPTHS, ASSETS) but before scene definitions
+class GameChart {
+    constructor(scene) {
+        this.scene = scene;
+        this.container = scene.add.container(0, 0);
+        this.container.setDepth(DEPTHS.BACKGROUND + 0.5);
+        
+        // Increase virtual width to show more of the graph (increased from 1x to 3x)
+        this.virtualWidth = scene.game.config.width * 3;
+        this.height = scene.game.config.height * 0.8;
+        this.viewportWidth = scene.game.config.width;
+        
+        // Reduce scroll speed to make the graph move slower
+        this.scrollSpeed = 0.8;
+        
+        this.points = [];
+        this.maxPoints = 50;  // Reduce number of visible points for smoother appearance
+        this.minValue = 0;
+        this.maxValue = 100;
+        
+        // Add smoothing factor for more dynamic movement
+        this.smoothingFactor = 0.3;  // Add smoothing factor for curves
+        this.elasticityFactor = 0.35; // Slightly increased for more responsive movement
+        
+        this.velocities = [];
+        
+        this.lineGraphics = scene.add.graphics();
+        this.glowGraphics = scene.add.graphics();
+        this.container.add([this.glowGraphics, this.lineGraphics]);
+        
+        this.container.setPosition(0, scene.game.config.height * 0.15); // Start at 15% from top
+        
+        scene.events.on('update', this.update, this);
+        scene.events.once('shutdown', this.destroy, this);
+        
+        this.lastValue = null;
+        this.minValueChange = 0.0001;
+        
+        // Add new properties for better scaling
+        this.scaleAdjustmentSpeed = 0.1;  // How quickly the scale adjusts
+        this.minScaleRange = 5000;        // Increased minimum range for better visibility
+        this.targetMaxValue = this.maxValue;
+        this.targetMinValue = this.minValue;
+        
+        // Add new property to store all historical points
+        this.historicalPoints = [];
+        this.maxHistoricalPoints = 100; // Adjust this for smoother/longer chart
+        
+        // Add property to store significant events (optional)
+        this.events = [];
+        
+        // Adjust update interval
+        this.updateInterval = 10000; // Reduced to 10 seconds for more frequent updates
+        this.lastUpdateTime = Date.now();
+        this.pendingValue = null;
+        
+        // Reduce smoothing window
+        this.smoothingWindow = 2; // Reduced from 3 for less averaging
     }
 
-    class StartScene extends Phaser.Scene {
-        constructor() {
-            super({ key: 'StartScene' });
-            this.planes = [];
-            this.planeTypes = ['player', 'planeglasses', 'planepepe'];
-            this.DEPTHS = {
-                BACKGROUND: 1,
-                STARS: 2,
-                PLANES: 5,
-                PARTICLES: 6,
-                UI: 1000
-            };
+    getYPosition(value) {
+        const normalizedValue = (value - this.minValue) / (this.maxValue - this.minValue);
+        return this.height - (normalizedValue * this.height);
+    }
+
+    addDataPoint(value) {
+        // Add debug logging
+        console.log('Adding data point:', value);
+
+        // Ensure value changes are meaningful
+        const minChange = this.minValueChange || 0.0001;
+        if (this.lastValue !== null && Math.abs(value - this.lastValue) < minChange) {
+            return; // Skip if change is too small
+        }
+        this.lastValue = value;
+
+        // Add some organic movement
+        const randomVariation = 1 + (Math.random() * 0.1 - 0.05); // ±5% random variation
+        value *= randomVariation;
+
+        // Add intermediate points for smoother transitions
+        if (this.points.length > 0) {
+            const lastPoint = this.points[this.points.length - 1];
+            const steps = 3; // Number of intermediate points
+            for (let i = 1; i <= steps; i++) {
+                const progress = i / (steps + 1);
+                const intermediateValue = lastPoint.currentY + (value - lastPoint.currentY) * progress;
+                // Add slight random variation to intermediate points
+                const smoothRandomFactor = 1 + (Math.random() * 0.02 - 0.01); // ±1% variation
+                this.points.push({
+                    x: this.virtualWidth - ((steps - i + 1) * (this.scrollSpeed * 5)),
+                    targetY: intermediateValue * smoothRandomFactor,
+                    currentY: intermediateValue * smoothRandomFactor
+                });
+                this.velocities.push(0);
+            }
         }
 
-        preload() {
-            try {
-                // Create a loading bar
-                let loadingBar = this.add.graphics({
-                    fillStyle: {
-                        color: 0xffffff
-                    }
-                });
+        // Add the actual point
+        const point = {
+            x: this.virtualWidth,
+            targetY: value,
+            currentY: this.points.length > 0 ? this.points[this.points.length - 1].currentY : value
+        };
+        
+        this.points.push(point);
+        this.velocities.push(0);
+        
+        // Trim points if needed
+        while (this.points.length > this.maxPoints) {
+            this.points.shift();
+            this.velocities.shift();
+        }
 
-                // Add error handling for load events
-                this.load.on('loaderror', (file) => {
-                    console.error('Error loading file:', file.src);
-                });
+        // Update scale dynamically
+        this.targetMaxValue = Math.max(value * 1.1, this.targetMaxValue);
+        this.targetMinValue = Math.min(value * 0.9, this.targetMinValue);
+    }
 
-                this.load.on('progress', (percent) => {
-                    loadingBar.fillRect(0, this.game.renderer.height / 2, this.game.renderer.width * percent, 50);
-                });
+    drawLine() {
+        this.lineGraphics.clear();
+        this.glowGraphics.clear();
+        
+        if (this.points.length < 2) return;
+        
+        // Single, subtle glow layer
+        this.glowGraphics.lineStyle(8, 0x4169E1, 0.05);  // Very faint blue glow
+        this.drawCurve(this.glowGraphics);
+        
+        // Main line - thin and semi-transparent
+        this.lineGraphics.lineStyle(1, 0x00FFFF, 0.2);   // Cyan with 20% opacity
+        this.drawCurve(this.lineGraphics);
+    }
 
-                this.load.on('complete', () => {
-                    loadingBar.destroy();
-                });
-
-                // Load assets with error handling
-                Object.entries(ASSETS.images).forEach(([key, value]) => {
-                    try {
-                        this.load.image(key, value);
-                    } catch (error) {
-                        console.error(`Error loading image ${key}:`, error);
-                    }
-                });
-
-                Object.entries(ASSETS.audio).forEach(([key, value]) => {
-                    try {
-                        this.load.audio(key, value);
-                    } catch (error) {
-                        console.error(`Error loading audio ${key}:`, error);
-                    }
-                });
-
-            } catch (error) {
-                console.error('Error in preload:', error);
-            }
-
-            // Add any other preload code here (e.g., scanlines)
-            // Create scanlines texture programmatically
-            const graphics = this.add.graphics();
-            graphics.lineStyle(1, 0xffffff);
-            for (let y = 0; y < 100; y += 2) {
-                graphics.moveTo(0, y);
-                graphics.lineTo(100, y);
-            }
-            graphics.generateTexture('scanlines', 100, 100);
-            graphics.destroy();
-
-            this.backgroundMusic = null;
-
+    drawCurve(graphics) {
+        if (this.points.length < 2) return;
+        
+        // Start the path
+        graphics.beginPath();
+        
+        // Move to first point
+        const firstPoint = this.points[0];
+        graphics.moveTo(firstPoint.x, this.getYPosition(firstPoint.currentY));
+        
+        // Draw lines to each subsequent point
+        for (let i = 1; i < this.points.length; i++) {
+            const current = this.points[i];
+            graphics.lineTo(
+                current.x,
+                this.getYPosition(current.currentY)
+            );
         }
         
+        graphics.strokePath();
+    }
 
-        create() {
-            // Stop any existing background music
-            if (this.game.backgroundMusic) {
-                this.game.backgroundMusic.stop();
-            }
+    update() {
+        // Smooth scale adjustment
+        this.maxValue += (this.targetMaxValue - this.maxValue) * this.scaleAdjustmentSpeed;
+        this.minValue += (this.targetMinValue - this.minValue) * this.scaleAdjustmentSpeed;
+        
+        // Scroll points
+        this.points.forEach(point => {
+            point.x -= this.scrollSpeed;
+        });
+        
+        // Update point positions with enhanced elastic movement
+        this.points.forEach((point, index) => {
+            const targetY = point.targetY;
+            const dy = targetY - point.currentY;
+            
+            this.velocities[index] += dy * this.elasticityFactor;
+            this.velocities[index] *= (1 - this.smoothingFactor);
+            point.currentY += this.velocities[index];
+        });
+        
+        this.drawLine();
+    }
 
-            // Create new background music instance
-            this.game.backgroundMusic = this.sound.add('backgroundMusic', {
-                loop: true,
-                volume: 0.5
+    destroy() {
+        this.scene.events.off('update', this.update, this);
+        this.container.destroy();
+    }
+
+    // Update the sharing chart generation
+    generateSharingChart(width = 800, height = 400) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+
+        if (this.historicalPoints.length < 2) return canvas;
+
+        // Calculate min/max for proper scaling
+        const values = this.historicalPoints.map(p => p.value);
+        const minValue = Math.min(...values) * 0.9;
+        const maxValue = Math.max(...values) * 1.1;
+        const valueRange = maxValue - minValue;
+
+        // Draw the line with multiple passes for glow effect
+        const drawLine = (lineWidth, color, alpha) => {
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.globalAlpha = alpha;
+
+            this.historicalPoints.forEach((point, index) => {
+                const x = (index / (this.historicalPoints.length - 1)) * width;
+                const normalizedValue = (point.value - minValue) / valueRange;
+                const y = height - (normalizedValue * height);
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
             });
-            this.game.backgroundMusic.play();
+            ctx.stroke();
+        };
 
-            // Add scrolling background (single instance)
-            this.background = this.add.tileSprite(0, 0, config.width, config.height, 'background')
-                .setOrigin(0, 0)
-                .setAlpha(0.3)
-                .setDepth(this.DEPTHS.BACKGROUND);
+        // Full opacity for share image
+        drawLine(20, 'rgba(0, 255, 255, 0.1)');
+        drawLine(12, 'rgba(0, 255, 255, 0.2)');
+        drawLine(6, 'rgba(0, 255, 255, 0.3)');
+        drawLine(3, 'rgba(0, 255, 255, 1.0)');
 
-            // Add black overlay
-            this.add.rectangle(0, 0, config.width, config.height, 0x000000, 0.5)
-                .setOrigin(0)
-                .setDepth(this.DEPTHS.BACKGROUND + 1);
+        return canvas;
+    }
+}
 
-            // Create star field with adjusted values
-            this.createStarField();
+class StartScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'StartScene' });
+        this.planes = [];
+        this.planeTypes = ['player', 'planeglasses', 'planepepe'];
+        this.DEPTHS = {
+            BACKGROUND: 1,
+            STARS: 2,
+            PLANES: 5,
+            PARTICLES: 6,
+            UI: 1000
+        };
+    }
 
-            // Create multiple shadow layers with different effects
-            const shadowLayers = 5; // Increased number of layers
-            const baseDelay = 100; // Delay between shadow movements
-            const shadowSprites = [];
+    preload() {
+        try {
+            // Create a loading bar
+            let loadingBar = this.add.graphics({
+                fillStyle: {
+                    color: 0xffffff
+                }
+            });
 
-            // Create shadow layers first (they should be behind the main logo)
-            for (let i = 0; i < shadowLayers; i++) {
-                const shadowSprite = this.add.image(
-                    this.cameras.main.width / 2,
-                    -100,
-                    'logo'
-                )
-                .setOrigin(0.5)
-                .setScale(0.15 + (i * 0.008)) // Slightly increasing scale for each layer
-                .setDepth(this.DEPTHS.UI - 1 - i) // Each layer gets progressively further back
-                .setTint(0xFF69B4)
-                .setAlpha(0.15 - (i * 0.02)); // Decreasing alpha for each layer
-                
-                shadowSprites.push(shadowSprite);
-                
-                // Add independent floating animation to each shadow
-                this.tweens.add({
-                    targets: shadowSprite,
-                    x: '+=8',
-                    y: '+=8',
-                    duration: 2000 + (i * 200), // Slightly different duration for each layer
-                    yoyo: true,
-                    repeat: -1,
-                    ease: 'Sine.easeInOut',
-                    delay: i * baseDelay // Stagger the movement
-                });
-                
-                // Add subtle rotation
-                this.tweens.add({
-                    targets: shadowSprite,
-                    angle: 2,
-                    duration: 3000 + (i * 300),
-                    yoyo: true,
-                    repeat: -1,
-                    ease: 'Sine.easeInOut',
-                    delay: i * baseDelay
-                });
-                
-                // Add scale pulsing
-                this.tweens.add({
-                    targets: shadowSprite,
-                    scaleX: '+=0.01',
-                    scaleY: '+=0.01',
-                    duration: 1500 + (i * 150),
-                    yoyo: true,
-                    repeat: -1,
-                    ease: 'Sine.easeInOut',
-                    delay: i * baseDelay / 2
-                });
-            }
+            // Add error handling for load events
+            this.load.on('loaderror', (file) => {
+                console.error('Error loading file:', file.src);
+            });
 
-            // Create the main logo on top
-            const logo = this.add.image(
+            this.load.on('progress', (percent) => {
+                loadingBar.fillRect(0, this.game.renderer.height / 2, this.game.renderer.width * percent, 50);
+            });
+
+            this.load.on('complete', () => {
+                loadingBar.destroy();
+            });
+
+            // Load assets with error handling
+            Object.entries(ASSETS.images).forEach(([key, value]) => {
+                try {
+                    this.load.image(key, value);
+                } catch (error) {
+                    console.error(`Error loading image ${key}:`, error);
+                }
+            });
+
+            Object.entries(ASSETS.audio).forEach(([key, value]) => {
+                try {
+                    this.load.audio(key, value);
+                } catch (error) {
+                    console.error(`Error loading audio ${key}:`, error);
+                }
+            });
+
+        } catch (error) {
+            console.error('Error in preload:', error);
+        }
+
+        // Add any other preload code here (e.g., scanlines)
+        // Create scanlines texture programmatically
+        const graphics = this.add.graphics();
+        graphics.lineStyle(1, 0xffffff);
+        for (let y = 0; y < 100; y += 2) {
+            graphics.moveTo(0, y);
+            graphics.lineTo(100, y);
+        }
+        graphics.generateTexture('scanlines', 100, 100);
+        graphics.destroy();
+
+        this.backgroundMusic = null;
+
+    }
+    
+
+    create() {
+        // Stop any existing background music
+        if (this.game.backgroundMusic) {
+            this.game.backgroundMusic.stop();
+        }
+
+        // Create new background music instance
+        this.game.backgroundMusic = this.sound.add('backgroundMusic', {
+            loop: true,
+            volume: 0.5
+        });
+        this.game.backgroundMusic.play();
+
+        // Add scrolling background (single instance)
+        this.background = this.add.tileSprite(0, 0, config.width, config.height, 'background')
+            .setOrigin(0, 0)
+            .setAlpha(0.3)
+            .setDepth(this.DEPTHS.BACKGROUND);
+
+        // Add black overlay
+        this.add.rectangle(0, 0, config.width, config.height, 0x000000, 0.5)
+            .setOrigin(0)
+            .setDepth(this.DEPTHS.BACKGROUND + 1);
+
+        // Create star field with adjusted values
+        this.createStarField();
+
+        // Create multiple shadow layers with different effects
+        const shadowLayers = 5; // Increased number of layers
+        const baseDelay = 100; // Delay between shadow movements
+        const shadowSprites = [];
+
+        // Create shadow layers first (they should be behind the main logo)
+        for (let i = 0; i < shadowLayers; i++) {
+            const shadowSprite = this.add.image(
                 this.cameras.main.width / 2,
                 -100,
                 'logo'
             )
             .setOrigin(0.5)
-            .setScale(0.15)
-            .setDepth(this.DEPTHS.UI)
-            .setTint(0xFF69B4);
-
-            // Add a subtle glow effect that pulses
-            const glowGraphics = this.add.graphics()
-                .setDepth(this.DEPTHS.UI - shadowLayers - 1);
-
+            .setScale(0.15 + (i * 0.008)) // Slightly increasing scale for each layer
+            .setDepth(this.DEPTHS.UI - 1 - i) // Each layer gets progressively further back
+            .setTint(0xFF69B4)
+            .setAlpha(0.15 - (i * 0.02)); // Decreasing alpha for each layer
+            
+            shadowSprites.push(shadowSprite);
+            
+            // Add independent floating animation to each shadow
             this.tweens.add({
-                targets: logo,
-                y: this.cameras.main.height * 0.15,
-                scale: 0.15,
-                duration: 1500,
-                ease: 'Bounce.easeOut',
-                onComplete: () => {
-                    // Main logo floating animation
-                    this.tweens.add({
-                        targets: logo,
-                        y: '+=10',
-                        duration: 2000,
-                        yoyo: true,
-                        repeat: -1,
-                        ease: 'Sine.easeInOut'
-                    });
-                    
-                    // Add subtle rotation to main logo
-                    this.tweens.add({
-                        targets: logo,
-                        angle: 1,
-                        duration: 2500,
-                        yoyo: true,
-                        repeat: -1,
-                        ease: 'Sine.easeInOut'
-                    });
-                }
-            });
-
-            // Add glow pulse effect
-            this.time.addEvent({
-                delay: 16,
-                callback: () => {
-                    glowGraphics.clear();
-                    
-                    // Pulse the glow size and alpha
-                    const time = this.time.now;
-                    const glowSize = 20 + Math.sin(time / 500) * 5;
-                    const glowAlpha = 0.3 + Math.sin(time / 500) * 0.1;
-                    
-                    glowGraphics.lineStyle(glowSize, 0xFF69B4, glowAlpha);
-                    glowGraphics.strokeCircle(
-                        logo.x,
-                        logo.y,
-                        logo.displayWidth * 0.6
-                    );
-                },
-                loop: true
-            });
-
-            // Add the initial animation for all elements
-            this.tweens.add({
-                targets: [...shadowSprites, logo],
-                y: this.cameras.main.height * 0.15,
-                duration: 1500,
-                ease: 'Bounce.easeOut',
-                delay: (target, i) => i * baseDelay
-            });
-
-            // Add UI elements with proper depth
-            const silhouette = this.add.image(
-                this.cameras.main.width / 2,
-                this.cameras.main.height * 0.8,
-                'silhouette'
-            )
-            .setScale(0.8)
-            .setTint(0x808080)
-            .setAlpha(0.4)
-            .setDepth(this.DEPTHS.UI);
-
-            // Add floating animation
-            this.tweens.add({
-                targets: silhouette,
-                y: '+=20',
-                duration: 2500,
+                targets: shadowSprite,
+                x: '+=8',
+                y: '+=8',
+                duration: 2000 + (i * 200), // Slightly different duration for each layer
                 yoyo: true,
                 repeat: -1,
-                ease: 'Sine.easeInOut'
+                ease: 'Sine.easeInOut',
+                delay: i * baseDelay // Stagger the movement
             });
-
+            
+            // Add subtle rotation
+            this.tweens.add({
+                targets: shadowSprite,
+                angle: 2,
+                duration: 3000 + (i * 300),
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut',
+                delay: i * baseDelay
+            });
+            
             // Add scale pulsing
             this.tweens.add({
-                targets: silhouette,
-                scaleX: '+=0.08',
-                scaleY: '+=0.08',
-                duration: 3000,
+                targets: shadowSprite,
+                scaleX: '+=0.01',
+                scaleY: '+=0.01',
+                duration: 1500 + (i * 150),
                 yoyo: true,
                 repeat: -1,
-                ease: 'Sine.easeInOut'
+                ease: 'Sine.easeInOut',
+                delay: i * baseDelay / 2
             });
+        }
 
-            // Show high scores
-            this.showHighScores();
+        // Create the main logo on top
+        const logo = this.add.image(
+            this.cameras.main.width / 2,
+            -100,
+            'logo'
+        )
+        .setOrigin(0.5)
+        .setScale(0.15)
+        .setDepth(this.DEPTHS.UI)
+        .setTint(0xFF69B4);
 
-            // Add start game text
-            const text = this.add.text(
-                config.width / 2,
-                config.height * 0.9,
-                'TOUCH ME',
-                {
-                    fontFamily: 'VT323',
-                    fontSize: '64px',
-                    fill: '#00FF00',
-                    stroke: '#000000',
-                    strokeThickness: 2,
-                    align: 'center'
-                }
-            ).setOrigin(0.5)
-            .setDepth(this.DEPTHS.UI)
-            .setInteractive();
+        // Add a subtle glow effect that pulses
+        const glowGraphics = this.add.graphics()
+            .setDepth(this.DEPTHS.UI - shadowLayers - 1);
 
-            text.on('pointerdown', () => {
-                // Simple scene transition
-                this.cameras.main.fade(1000, 0, 0, 0);
-                this.time.delayedCall(1000, () => {
-                    this.scene.start('MainGame');
+        this.tweens.add({
+            targets: logo,
+            y: this.cameras.main.height * 0.15,
+            scale: 0.15,
+            duration: 1500,
+            ease: 'Bounce.easeOut',
+            onComplete: () => {
+                // Main logo floating animation
+                this.tweens.add({
+                    targets: logo,
+                    y: '+=10',
+                    duration: 2000,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
                 });
-            });
-
-            // Initialize plane spawning
-            this.spawnPlanes();
-            
-            // Start plane spawning timer
-            this.time.addEvent({
-                delay: 3000,
-                callback: this.spawnPlanes,
-                callbackScope: this,
-                loop: true
-            });
-
-            // Add this after the logo creation code in create()
-
-            // Create the cat silhouette with cool effects
-            
-        }
-
-        createStarField() {
-            this.starsParticles = this.add.particles('particle');
-            
-            // Common emitter config with increased lifespan and adjusted y range
-            const emitterConfig = {
-                x: { min: 0, max: this.game.config.width },
-                y: { min: -50, max: this.game.config.height },
-                lifespan: 4000,
-                frequency: 50,
-                blendMode: 'ADD',
-                gravityY: 0,
-                emitting: true
-            };
-
-            // Background stars (increased visibility)
-            this.starsBack = this.starsParticles.createEmitter({
-                ...emitterConfig,
-                scale: { start: 0.08, end: 0 },     // Increased from 0.05
-                speedY: { min: 400, max: 800 },
-                alpha: { start: 0.7, end: 0 },      // Increased from 0.5
-                tint: 0xFFFFFF,
-                quantity: 2,
-                frequency: 20
-            });
-
-            // Middle layer stars
-            this.starsMid = this.starsParticles.createEmitter({
-                ...emitterConfig,
-                scale: { start: 0.06, end: 0 },     // Increased from 0.04
-                speedY: { min: 300, max: 600 },
-                alpha: { start: 0.8, end: 0 },      // Increased from 0.6
-                tint: 0x00FFFF,
-                quantity: 1,
-                frequency: 40
-            });
-
-            // Foreground stars (largest, slowest)
-            this.starsFront = this.starsParticles.createEmitter({
-                ...emitterConfig,
-                scale: { start: 0.09, end: 0 },     // Increased from 0.06
-                speedY: { min: 200, max: 400 },
-                alpha: { start: 0.9, end: 0 },      // Increased from 0.7
-                tint: 0xFFFF00,
-                quantity: 1,
-                frequency: 60
-            });
-
-            // Initial population
-            const initialStars = 50;  // Increased from 30
-            for (let i = 0; i < initialStars; i++) {
-                this.starsBack.emitParticle();
-                this.starsMid.emitParticle();
-                this.starsFront.emitParticle();
-            }
-        }
-
-        update() {
-            // Scroll background
-            if (this.background) {
-                this.background.tilePositionY += 0.5;
-            }
-
-            // Update planes with safety checks
-            if (this.planes) {
-                this.planes.forEach(plane => {
-                    if (!plane || !plane.active) return; // Skip if plane is destroyed
-
-                    const velocity = plane.getData('velocity');
-                    if (!velocity) return; // Skip if no velocity data
-
-                    plane.x += velocity.x * (1/60);
-                    plane.y += velocity.y * (1/60);
-
-                    // Update trail emitter if it exists
-                    if (plane.trailEmitter && plane.active) {
-                        plane.trailEmitter.setPosition(plane.x, plane.y);
-                    }
-                });
-            }
-        }
-
-        // Helper methods
-        isInView(plane) {
-            const padding = 100;
-            return plane.x > -padding && 
-                plane.x < config.width + padding && 
-                plane.y > -padding && 
-                plane.y < config.height + padding;
-        }
-
-        getRandomSpawnPoint() {
-            const side = Phaser.Math.Between(0, 3); // 0: top, 1: right, 2: bottom, 3: left
-            const padding = 50;
-            
-            switch(side) {
-                case 0: return { x: Phaser.Math.Between(0, config.width), y: -padding };
-                case 1: return { x: config.width + padding, y: Phaser.Math.Between(0, config.height) };
-                case 2: return { x: Phaser.Math.Between(0, config.width), y: config.height + padding };
-                case 3: return { x: -padding, y: Phaser.Math.Between(0, config.height) };
-            }
-        }
-
-        getVelocityFromSpawnPoint(point) {
-            const centerX = config.width / 2;
-            const centerY = config.height / 2;
-            const angle = Math.atan2(centerY - point.y, centerX - point.x);
-            const speed = 200;
-            return {
-                x: Math.cos(angle) * speed,
-                y: Math.sin(angle) * speed
-            };
-        }
-
-        getTrailColor(planeType) {
-            switch(planeType) {
-                case 'planepepe': return 0x00FF00;    // Green
-                case 'planeglasses': return 0xFFD700;  // Gold
-                default: return 0xFFFFFF;              // White
-            }
-        }
-
-        showHighScores() {
-            // Title for high scores
-            this.add.text(
-                config.width / 2,
-                config.height * 0.3,
-                'HIGH SCORES',
-                {
-                    fontFamily: 'VT323',
-                    fontSize: '32px',
-                    fill: '#00FF00',
-                    stroke: '#000000',
-                    strokeThickness: 2,
-                    align: 'center'
-                }
-            ).setOrigin(0.5).setDepth(this.DEPTHS.UI);
-
-            // Fetch and display scores from Firebase
-            if (window.database) {
-                window.database.ref('scores')
-                    .orderByChild('score')
-                    .limitToLast(15)  // Get top 15 scores
-                    .once('value')
-                    .then((snapshot) => {
-                        const scores = [];
-                        snapshot.forEach((childSnapshot) => {
-                            scores.push({
-                                name: childSnapshot.val().name,
-                                score: childSnapshot.val().score
-                            });
-                        });
-
-                        // Sort scores in descending order
-                        scores.sort((a, b) => b.score - a.score);
-
-                        // Calculate text size and spacing based on screen height
-                        const startY = config.height * 0.35;
-                        const spacing = Math.min(25, (config.height * 0.5) / 15); // Adjust spacing to fit
-                        const fontSize = Math.min(20, spacing * 0.8); // Adjust font size to fit
-
-                        // Display scores
-                        scores.forEach((score, index) => {
-                            const yPos = startY + (index * spacing);
-                            this.add.text(
-                                config.width / 2,
-                                yPos,
-                                `${index + 1}. ${score.name}: $${score.score.toLocaleString()}`,
-                                {
-                                    fontFamily: 'VT323',
-                                    fontSize: `${fontSize}px`,
-                                    fill: index < 3 ? '#FFD700' : '#FFFFFF', // Gold for top 3
-                                    stroke: '#000000',
-                                    strokeThickness: 2,
-                                    align: 'center'
-                                }
-                            ).setOrigin(0.5).setDepth(this.DEPTHS.UI);
-                        });
-                    })
-                    .catch((error) => {
-                        console.error('Error fetching high scores:', error);
-                        this.showErrorMessage();
-                    });
-            } else {
-                this.showErrorMessage();
-            }
-        }
-
-        showErrorMessage() {
-            this.add.text(
-                config.width / 2,
-                config.height * 0.4,
-                'Unable to load scores',
-                {
-                    fontFamily: 'VT323',
-                    fontSize: '24px',
-                    fill: '#FF0000',
-                    stroke: '#000000',
-                    strokeThickness: 2,
-                    align: 'center'
-                }
-            ).setOrigin(0.5).setDepth(this.DEPTHS.UI);
-        }
-
-        spawnPlanes() {
-            // Clean up off-screen planes
-            this.planes = this.planes.filter(plane => {
-                if (!this.isInView(plane)) {
-                    if (plane.trailEmitter) {
-                        plane.particleManager.destroy();  // Destroy the particle manager
-                    }
-                    plane.destroy();
-                    return false;
-                }
-                return true;
-            });
-
-            // Only spawn new planes if we have less than 3
-            if (this.planes.length >= 3) return;
-
-            // Spawn 1-2 new planes
-            const numPlanesToSpawn = Phaser.Math.Between(1, 2);
-            
-            for (let i = 0; i < numPlanesToSpawn; i++) {
-                const spawnPoint = this.getRandomSpawnPoint();
-                const planeType = Phaser.Utils.Array.GetRandom(this.planeTypes);
                 
-                const plane = this.add.sprite(spawnPoint.x, spawnPoint.y, planeType)
-                    .setScale(0.1)
-                    .setDepth(this.DEPTHS.PLANES);
-
-                // Set velocity and rotation
-                const velocity = this.getVelocityFromSpawnPoint(spawnPoint);
-                plane.setData('velocity', velocity);
-                plane.rotation = Math.atan2(velocity.y, velocity.x);
-
-                // Create trail emitter
-                const trailColor = this.getTrailColor(planeType);
-                const particleManager = this.add.particles('particle')
-                    .setDepth(this.DEPTHS.PARTICLES - 1);
-
-                plane.trailEmitter = particleManager.createEmitter({
-                    follow: plane,
-                    scale: { start: 0.2, end: 0 },
-                    alpha: { start: 0.5, end: 0 },
-                    speed: 0,
-                    lifespan: 1000,
-                    quantity: 2,
-                    frequency: 50,
-                    blendMode: 'ADD',
-                    tint: trailColor
+                // Add subtle rotation to main logo
+                this.tweens.add({
+                    targets: logo,
+                    angle: 1,
+                    duration: 2500,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
                 });
-
-                // Store both the manager and emitter for cleanup
-                plane.particleManager = particleManager;
-
-                this.planes.push(plane);
             }
-        }
+        });
 
-        // Add scene cleanup
-        shutdown() {
-            // Clean up planes
-            if (this.planes) {
-                this.planes.forEach(plane => {
-                    if (plane.particleManager) {
-                        plane.particleManager.destroy();
-                    }
-                    plane.destroy();
-                });
-                this.planes = [];
-            }
+        // Add glow pulse effect
+        this.time.addEvent({
+            delay: 16,
+            callback: () => {
+                glowGraphics.clear();
+                
+                // Pulse the glow size and alpha
+                const time = this.time.now;
+                const glowSize = 20 + Math.sin(time / 500) * 5;
+                const glowAlpha = 0.3 + Math.sin(time / 500) * 0.1;
+                
+                glowGraphics.lineStyle(glowSize, 0xFF69B4, glowAlpha);
+                glowGraphics.strokeCircle(
+                    logo.x,
+                    logo.y,
+                    logo.displayWidth * 0.6
+                );
+            },
+            loop: true
+        });
 
-            // Clean up particle systems
-            if (this.starsParticles) {
-                this.starsParticles.destroy();
+        // Add the initial animation for all elements
+        this.tweens.add({
+            targets: [...shadowSprites, logo],
+            y: this.cameras.main.height * 0.15,
+            duration: 1500,
+            ease: 'Bounce.easeOut',
+            delay: (target, i) => i * baseDelay
+        });
+
+        // Add UI elements with proper depth
+        const silhouette = this.add.image(
+            this.cameras.main.width / 2,
+            this.cameras.main.height * 0.8,
+            'silhouette'
+        )
+        .setScale(0.8)
+        .setTint(0x808080)
+        .setAlpha(0.4)
+        .setDepth(this.DEPTHS.UI);
+
+        // Add floating animation
+        this.tweens.add({
+            targets: silhouette,
+            y: '+=20',
+            duration: 2500,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        // Add scale pulsing
+        this.tweens.add({
+            targets: silhouette,
+            scaleX: '+=0.08',
+            scaleY: '+=0.08',
+            duration: 3000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        // Show high scores
+        this.showHighScores();
+
+        // Add start game text
+        const text = this.add.text(
+            config.width / 2,
+            config.height * 0.9,
+            'TOUCH ME',
+            {
+                fontFamily: 'VT323',
+                fontSize: '64px',
+                fill: '#00FF00',
+                stroke: '#000000',
+                strokeThickness: 2,
+                align: 'center'
             }
+        ).setOrigin(0.5)
+        .setDepth(this.DEPTHS.UI)
+        .setInteractive();
+
+        text.on('pointerdown', () => {
+            // Simple scene transition
+            this.cameras.main.fade(1000, 0, 0, 0);
+            this.time.delayedCall(1000, () => {
+                this.scene.start('MainGame');
+            });
+        });
+
+        // Initialize plane spawning
+        this.spawnPlanes();
+        
+        // Start plane spawning timer
+        this.time.addEvent({
+            delay: 3000,
+            callback: this.spawnPlanes,
+            callbackScope: this,
+            loop: true
+        });
+
+        // Add this after the logo creation code in create()
+
+        // Create the cat silhouette with cool effects
+        
+    }
+
+    createStarField() {
+        this.starsParticles = this.add.particles('particle');
+        
+        // Common emitter config with increased lifespan and adjusted y range
+        const emitterConfig = {
+            x: { min: 0, max: this.game.config.width },
+            y: { min: -50, max: this.game.config.height },
+            lifespan: 4000,
+            frequency: 50,
+            blendMode: 'ADD',
+            gravityY: 0,
+            emitting: true
+        };
+
+        // Background stars (increased visibility)
+        this.starsBack = this.starsParticles.createEmitter({
+            ...emitterConfig,
+            scale: { start: 0.08, end: 0 },     // Increased from 0.05
+            speedY: { min: 400, max: 800 },
+            alpha: { start: 0.7, end: 0 },      // Increased from 0.5
+            tint: 0xFFFFFF,
+            quantity: 2,
+            frequency: 20
+        });
+
+        // Middle layer stars
+        this.starsMid = this.starsParticles.createEmitter({
+            ...emitterConfig,
+            scale: { start: 0.06, end: 0 },     // Increased from 0.04
+            speedY: { min: 300, max: 600 },
+            alpha: { start: 0.8, end: 0 },      // Increased from 0.6
+            tint: 0x00FFFF,
+            quantity: 1,
+            frequency: 40
+        });
+
+        // Foreground stars (largest, slowest)
+        this.starsFront = this.starsParticles.createEmitter({
+            ...emitterConfig,
+            scale: { start: 0.09, end: 0 },     // Increased from 0.06
+            speedY: { min: 200, max: 400 },
+            alpha: { start: 0.9, end: 0 },      // Increased from 0.7
+            tint: 0xFFFF00,
+            quantity: 1,
+            frequency: 60
+        });
+
+        // Initial population
+        const initialStars = 50;  // Increased from 30
+        for (let i = 0; i < initialStars; i++) {
+            this.starsBack.emitParticle();
+            this.starsMid.emitParticle();
+            this.starsFront.emitParticle();
         }
     }
 
-    class MainGame extends Phaser.Scene {
-        constructor() {
-            super({ key: 'MainGame' });
-            this.scoreHistory = []; // Array of {timestamp, score} objects
-            // Add speed properties
-            this.baseBackgroundSpeed = 6;    // Increased from 0.5
-        this.maxBackgroundSpeed = 7;     // Increased from 2
-        this.currentBackgroundSpeed = this.baseBackgroundSpeed;
-            this.speedIncreaseInterval = 15000; // Increase speed every 15 seconds
-            
-            // Define the base text style
-            this.baseTextStyle = {
-                fontFamily: 'VT323',
-                fontSize: '24px',  // Made it bigger since VT323 is smaller than Press Start 2P
-                fill: '#ffffff',
-                stroke: '#000000',
-                strokeThickness: 2
-            };
-
-            // Update tallyConfig to use baseTextStyle
-            this.tallyConfig = {
-                x: 0,
-                y: 0,
-                width: 0,
-                lineSpacing: 27,
-                fontSize: 36,
-                fontFamily: 'VT323',
-                color: '#ffffff',
-                stroke: '#000000',
-                strokeThickness: 3,
-                align: 'left',
-                depth: 1000
-            };
-
-            // Add DEPTHS constants to the game scene
-            this.DEPTHS = {
-                BACKGROUND: 1,
-                STARS: 2,
-                MOON: 3,
-                CANDLES: 4,
-                POWERUPS: 5,
-                METEORS: 6,
-                PLAYER: 7,
-                LASER: 8,
-                DOLLARS: 9,
-                PARTICLES: 10,
-                UI: 1000
-            };
-
-            // Constants
-            this.SECONDS_IN_MINUTE = 60;
-            this.UI_DEPTH = 1000;
-
-            // Game configuration
-            this.gameConfig = {
-                duration: 180, // 3 minutes in seconds
-                phases: {
-                    intro: { start: 180, end: 165 }, // First 15 seconds
-                    early: { start: 165, end: 120 }, // 45 seconds
-                    mid: { start: 120, end: 60 },    // 60 seconds
-                    late: { start: 60, end: 20 },    // 40 seconds
-                    final: { start: 20, end: 0 }     // Last 20 seconds
-                },
-                spawnRates: {
-                    early: {
-                        greenCandle: 0.7,
-                        redCandle: 0.3,
-                        powerUps: 0.1
-                    },
-                    mid: {
-                        greenCandle: 0.5,
-                        redCandle: 0.5,
-                        powerUps: 0.15
-                    },
-                    late: {
-                        greenCandle: 0.3,
-                        redCandle: 0.7,
-                        powerUps: 0.2
-                    }
-                },
-                redCandleDelay: 10,
-                initialSpawnDelay: 1000,
-                minSpawnDelay: 300,
-                spawnRateIncreaseStart: 0.2,
-                spawnRateDecreaseFactor: 0.9,
-                candleSpeeds: {
-                    short: 150,
-                    mid: 130,
-                    tall: 110
-                },
-                candleScales: {
-                    short: 0.4,
-                    mid: 0.5,
-                    tall: 0.6
-                },
-                speedIncreaseFactor: 200,
-                redSpeedMultiplier: 1.5,
-                redSpeedIncreaseFactor: 2,
-                redProbabilityFactor: 0.7,
-                spawnStopTime: 10,
-                moonGlassesStopTime: 20,
-                asteroidExitTime: 15
-            };
-
-            // Moon configuration (without game-dependent values)
-            this.moonConfig = {
-                startY: -1000,
-                entryDuration: 15000,
-                finalYPercentage: 0.5,
-                startTime: 20
-            };
-
-            // Game state
-            this.gameTime = this.gameConfig.duration;
-            this.difficultyFactor = 0;
-            this.score = 0;
-            this.scoreMultiplier = 1;
-            this.consecutiveGreenCandles = 0;
-            this.redCandlesEnabled = false;
-
-            // Game objects
-            this.player = null;
-            this.candles = null;
-            this.meteors = null;
-            this.background = null;
-            this.targetPosition = new Phaser.Math.Vector2(0, 0);
-            this.isPointerInGame = true;
-
-            // UI elements
-            this.scoreText = null;
-            this.timerText = null;
-            this.multiplierText = null;
-
-            // Timers and spawners
-            this.spawnTimer = null;
-            this.meteorSpawnTimer = null;
-            this.meteorChunkTimer = null;
-            this.moonGlassesTimer = null;
-
-            // Audio
-            this.backgroundMusic = null;
-            this.greenSounds = [];
-            this.redSounds = [];
-
-            // Particles
-            this.particles = null;
-
-            // Motivational text
-            this.motivationalTexts = [
-                "Abundance flows\nto you!",
-                "Success is your\nbirthright!",
-                "You're attracting\nwealth!",
-                "Luxury embraces\nyou!",
-                "Prosperity is\nyour reality!",
-                "You deserve the\nbest in life!",
-                "Wealth finds its\nway to you!",
-                "You're a magnet\nfor success!",
-                "Your dreams are\nmanifesting now!",
-                "You're living your\nbest life!",
-                "HODL to the moon!",
-                "Diamond hands\nwin always!",
-                "Pump it up!",
-                "To the moon\nand beyond!",
-                "Lambo soon!",
-                "We're all gonna\nmake it!",
-                "Buy the dip!",
-                "FOMO is real!",
-                "Wen moon?",
-                "This is the way!"
-            ];
-            this.textColors = ['#FFD700', '#FF4500', '#32CD32'];
-            this.currentText = null;
-
-            // Stars
-            this.starsParticles = null;
-            this.starsBack = null;
-            this.starsMid = null;
-            this.starsFront = null;
-
-            // Input
-            this.cursors = null;
-            this.moon = null;
-
-            // Add zoom configuration
-            this.zoomConfig = {
-                startTime: 60,        // Seconds before the end when zoom starts
-                duration: 60,         // Duration of zoom in seconds
-                startScale: 1,        // Keep the current scale as starting point
-                endScale: 0.3        // Zoom out to half size (adjust this value as needed)
-            };
-            this.isZooming = false;
-            this.zoomProgress = 0;
-
-            // Add tracking for candles and dollar signs
-            this.totalGreenCandles = 0;
-            this.collectedGreenCandles = 0;
-            this.totalRedCandles = 0;
-            this.avoidedRedCandles = 0;
-            this.totalDollarSigns = 0;
-            this.collectedDollarSigns = 0;
-            this.allTimeHigh = 0;
-
-            // Add a custom font
-            this.fontStyle = { 
-                fontFamily: 'VT323', // Remove the quotes around Press Start 2P
-                fontSize: '16px', 
-                fill: '#ffffff',
-                stroke: '#000000',
-                strokeThickness: 4
-            };
-
-            this.hasMoonglassesBonus = false;
-            this.dollarsCollected = 0;
-            this.isBonusActive = false;
-            this.bonusDuration = 7000; // 7 seconds in milliseconds
-            this.originalPlayerSprite = 'player';  // Add this line
-
-            // Initialize tallyConfig with default values
-            this.tallyConfig = {
-                x: 0,
-                y: 0,
-                width: 0,
-                lineSpacing: 20,
-                fontSize: 16,
-                fontFamily: 'VT323', // Remove the extra quotes
-                color: '#ffffff',
-                stroke: '#000000',
-                strokeThickness: 3,
-                align: 'left',
-                depth: 1000
-            };
-
-            // Add these properties to the constructor
-            this.dollarCollectCount = 0;
-            this.isSuperBonusActive = false;
-            this.bonusDuration = 10000; // 10 seconds
-            this.laserBeam = null;
-
-            // Power-up manager
-            this.powerUps = null;
-
-            // Initialize dollarSigns array
-            this.dollarSigns = [];
-
-            // Add this property to track gravitational pull
-            this.gravitationalPull = {
-                active: false,
-                radius: 150,  // Radius of gravitational effect
-                strength: 200 // Strength of the pull
-            };
-
-            // In your MainGame class constructor, add:
-            this.scoreHistory = [];
-            this.lastLoggedTime = 0;
-            this.scoreLoggingInterval = 250; // Log every 250ms
-            
-            // Add a property to track the timer event
-            this.gameTimer = null;
-
-            // Add this property to track the last update time
-            this.lastUpdateTime = 0;
+    update() {
+        // Scroll background
+        if (this.background) {
+            this.background.tilePositionY += 0.5;
         }
 
-        init() {
-            this.gameTime = this.gameConfig.duration;
-            this.difficultyFactor = 0;
-            this.score = 0;
-            this.scoreMultiplier = 1;
-            this.consecutiveGreenCandles = 0;
-            this.redCandlesEnabled = false;
-            this.isZooming = false;
-            this.zoomProgress = 0;
-            this.totalGreenCandles = 0;
-            this.collectedGreenCandles = 0;
-            this.totalRedCandles = 0;
-            this.avoidedRedCandles = 0;
-            this.totalDollarSigns = 0;
-            this.collectedDollarSigns = 0;
-            this.allTimeHigh = 0;
-            this.hasMoonglassesBonus = false;
-            this.dollarsCollected = 0;
-            this.isBonusActive = false;
-            this.dollarCollectCount = 0;
-            this.isSuperBonusActive = false;
-            this.totalDollarSigns = 0;
-            this.collectedDollarSigns = 0;
-            this.dollarsCollected = 0;        
-            // Reset background speed
-            this.currentBackgroundSpeed = this.baseBackgroundSpeed;
-        }
+        // Update planes with safety checks
+        if (this.planes) {
+            this.planes.forEach(plane => {
+                if (!plane || !plane.active) return; // Skip if plane is destroyed
 
-        preload() {
-            try {
-                // Create a loading bar
-                let loadingBar = this.add.graphics({
-                    fillStyle: {
-                        color: 0xffffff
-                    }
-                });
+                const velocity = plane.getData('velocity');
+                if (!velocity) return; // Skip if no velocity data
 
-                // Add error handling for load events
-                this.load.on('loaderror', (file) => {
-                    console.error('Error loading file:', file.src);
-                });
+                plane.x += velocity.x * (1/60);
+                plane.y += velocity.y * (1/60);
 
-                this.load.on('progress', (percent) => {
-                    loadingBar.fillRect(0, this.game.renderer.height / 2, this.game.renderer.width * percent, 50);
-                });
-
-                this.load.on('complete', () => {
-                    loadingBar.destroy();
-                });
-
-                // Load assets with error handling
-                Object.entries(ASSETS.images).forEach(([key, value]) => {
-                    try {
-                        this.load.image(key, value);
-                    } catch (error) {
-                        console.error(`Error loading image ${key}:`, error);
-                    }
-                });
-
-                Object.entries(ASSETS.audio).forEach(([key, value]) => {
-                    try {
-                        this.load.audio(key, value);
-                    } catch (error) {
-                        console.error(`Error loading audio ${key}:`, error);
-                    }
-                });
-
-            } catch (error) {
-                console.error('Error in preload:', error);
-            }
-
-            // Add any other preload code here (e.g., scanlines)
-            // Create scanlines texture programmatically
-            const graphics = this.add.graphics();
-            graphics.lineStyle(1, 0xffffff);
-            for (let y = 0; y < 100; y += 2) {
-                graphics.moveTo(0, y);
-                graphics.lineTo(100, y);
-            }
-            graphics.generateTexture('scanlines', 100, 100);
-            graphics.destroy();
-
-            this.backgroundMusic = null;
-
-        }
-
-        create() {
-            // Add these properties
-            this.gameEnded = false;
-            this.hasReachedMoon = false;
-            this.controlsEnabled = true;
-            
-            // Stop any existing background music
-            if (this.game.backgroundMusic) {
-                this.game.backgroundMusic.stop();
-            }
-
-            // Create new background music instance
-            this.game.backgroundMusic = this.sound.add('backgroundMusic', {
-                loop: true,
-                volume: 0.5
+                // Update trail emitter if it exists
+                if (plane.trailEmitter && plane.active) {
+                    plane.trailEmitter.setPosition(plane.x, plane.y);
+                }
             });
-            this.game.backgroundMusic.play();
+        }
+    }
 
-            // Start with a black screen
-            this.cameras.main.fadeFrom(1000, 0, 0, 0);
+    // Helper methods
+    isInView(plane) {
+        const padding = 100;
+        return plane.x > -padding && 
+            plane.x < config.width + padding && 
+            plane.y > -padding && 
+            plane.y < config.height + padding;
+    }
 
-            this.init();  // Call init method to reset game state
-            
-            // Initialize game-dependent values
-            this.moonConfig.endY = this.sys.game.config.height * this.moonConfig.finalYPercentage;
-
-            // Destroy existing game objects
-            if (this.candles) {
-                this.candles.destroy(true);
-            }
-            if (this.meteors) {
-                this.meteors.destroy(true);
-            }
-            if (this.dollarSigns) {
-                this.dollarSigns.forEach(dollar => dollar.destroy());
-            }
-            if (this.moon) {
-                this.moon.destroy();
-            }
-            if (this.player) {
-                this.player.destroy();
-            }
-            
-            // Create new game objects
-            this.candles = this.physics.add.group();
-            this.meteors = this.physics.add.group();
-
-            // Reset the moon
-            this.resetMoon();
-
-            // Initialize background
-            this.background = this.add.tileSprite(
-                0,                          // x position
-                0,                          // y position
-                this.game.config.width,     // width
-                this.game.config.height,    // height
-                'background'
-            );
-            this.background.setOrigin(0, 0);
-            this.background.setScale(1);    // Adjust scale to zoom out the pattern
-            this.background.setAlpha(0.3);  // Keep the existing alpha
-            this.background.setDepth(this.DEPTHS.BACKGROUND);  // Ensure proper layering
-            
-            this.background = this.add.tileSprite(0, 0, this.game.config.width, this.game.config.height, 'background')
-            .setOrigin(0, 0)
-            .setDepth(DEPTHS.BACKGROUND);
+    getRandomSpawnPoint() {
+        const side = Phaser.Math.Between(0, 3); // 0: top, 1: right, 2: bottom, 3: left
+        const padding = 50;
         
-        // Create chart
+        switch(side) {
+            case 0: return { x: Phaser.Math.Between(0, config.width), y: -padding };
+            case 1: return { x: config.width + padding, y: Phaser.Math.Between(0, config.height) };
+            case 2: return { x: Phaser.Math.Between(0, config.width), y: config.height + padding };
+            case 3: return { x: -padding, y: Phaser.Math.Between(0, config.height) };
+        }
+    }
+
+    getVelocityFromSpawnPoint(point) {
+        const centerX = config.width / 2;
+        const centerY = config.height / 2;
+        const angle = Math.atan2(centerY - point.y, centerX - point.x);
+        const speed = 200;
+        return {
+            x: Math.cos(angle) * speed,
+            y: Math.sin(angle) * speed
+        };
+    }
+
+    getTrailColor(planeType) {
+        switch(planeType) {
+            case 'planepepe': return 0x00FF00;    // Green
+            case 'planeglasses': return 0xFFD700;  // Gold
+            default: return 0xFFFFFF;              // White
+        }
+    }
+
+    showHighScores() {
+        // Title for high scores
+        this.add.text(
+            config.width / 2,
+            config.height * 0.3,
+            'HIGH SCORES',
+            {
+                fontFamily: 'VT323',
+                fontSize: '32px',
+                fill: '#00FF00',
+                stroke: '#000000',
+                strokeThickness: 2,
+                align: 'center'
+            }
+        ).setOrigin(0.5).setDepth(this.DEPTHS.UI);
+
+        // Fetch and display scores from Firebase
+        if (window.database) {
+            window.database.ref('scores')
+                .orderByChild('score')
+                .limitToLast(15)  // Get top 15 scores
+                .once('value')
+                .then((snapshot) => {
+                    const scores = [];
+                    snapshot.forEach((childSnapshot) => {
+                        scores.push({
+                            name: childSnapshot.val().name,
+                            score: childSnapshot.val().score
+                        });
+                    });
+
+                    // Sort scores in descending order
+                    scores.sort((a, b) => b.score - a.score);
+
+                    // Calculate text size and spacing based on screen height
+                    const startY = config.height * 0.35;
+                    const spacing = Math.min(25, (config.height * 0.5) / 15); // Adjust spacing to fit
+                    const fontSize = Math.min(20, spacing * 0.8); // Adjust font size to fit
+
+                    // Display scores
+                    scores.forEach((score, index) => {
+                        const yPos = startY + (index * spacing);
+                        this.add.text(
+                            config.width / 2,
+                            yPos,
+                            `${index + 1}. ${score.name}: $${score.score.toLocaleString()}`,
+                            {
+                                fontFamily: 'VT323',
+                                fontSize: `${fontSize}px`,
+                                fill: index < 3 ? '#FFD700' : '#FFFFFF', // Gold for top 3
+                                stroke: '#000000',
+                                strokeThickness: 2,
+                                align: 'center'
+                            }
+                        ).setOrigin(0.5).setDepth(this.DEPTHS.UI);
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error fetching high scores:', error);
+                    this.showErrorMessage();
+                });
+        } else {
+            this.showErrorMessage();
+        }
+    }
+
+    showErrorMessage() {
+        this.add.text(
+            config.width / 2,
+            config.height * 0.4,
+            'Unable to load scores',
+            {
+                fontFamily: 'VT323',
+                fontSize: '24px',
+                fill: '#FF0000',
+                stroke: '#000000',
+                strokeThickness: 2,
+                align: 'center'
+            }
+        ).setOrigin(0.5).setDepth(this.DEPTHS.UI);
+    }
+
+    spawnPlanes() {
+        // Clean up off-screen planes
+        this.planes = this.planes.filter(plane => {
+            if (!this.isInView(plane)) {
+                if (plane.trailEmitter) {
+                    plane.particleManager.destroy();  // Destroy the particle manager
+                }
+                plane.destroy();
+                return false;
+            }
+            return true;
+        });
+
+        // Only spawn new planes if we have less than 3
+        if (this.planes.length >= 3) return;
+
+        // Spawn 1-2 new planes
+        const numPlanesToSpawn = Phaser.Math.Between(1, 2);
+        
+        for (let i = 0; i < numPlanesToSpawn; i++) {
+            const spawnPoint = this.getRandomSpawnPoint();
+            const planeType = Phaser.Utils.Array.GetRandom(this.planeTypes);
+            
+            const plane = this.add.sprite(spawnPoint.x, spawnPoint.y, planeType)
+                .setScale(0.1)
+                .setDepth(this.DEPTHS.PLANES);
+
+            // Set velocity and rotation
+            const velocity = this.getVelocityFromSpawnPoint(spawnPoint);
+            plane.setData('velocity', velocity);
+            plane.rotation = Math.atan2(velocity.y, velocity.x);
+
+            // Create trail emitter
+            const trailColor = this.getTrailColor(planeType);
+            const particleManager = this.add.particles('particle')
+                .setDepth(this.DEPTHS.PARTICLES - 1);
+
+            plane.trailEmitter = particleManager.createEmitter({
+                follow: plane,
+                scale: { start: 0.2, end: 0 },
+                alpha: { start: 0.5, end: 0 },
+                speed: 0,
+                lifespan: 1000,
+                quantity: 2,
+                frequency: 50,
+                blendMode: 'ADD',
+                tint: trailColor
+            });
+
+            // Store both the manager and emitter for cleanup
+            plane.particleManager = particleManager;
+
+            this.planes.push(plane);
+        }
+    }
+
+    // Add scene cleanup
+    shutdown() {
+        // Clean up planes
+        if (this.planes) {
+            this.planes.forEach(plane => {
+                if (plane.particleManager) {
+                    plane.particleManager.destroy();
+                }
+                plane.destroy();
+            });
+            this.planes = [];
+        }
+
+        // Clean up particle systems
+        if (this.starsParticles) {
+            this.starsParticles.destroy();
+        }
+    }
+}
+
+class MainGame extends Phaser.Scene {
+    constructor() {
+        super({ key: 'MainGame' });
+        this.scoreHistory = []; // Array of {timestamp, score} objects
+        // Add speed properties
+        this.baseBackgroundSpeed = 6;    // Increased from 0.5
+    this.maxBackgroundSpeed = 7;     // Increased from 2
+    this.currentBackgroundSpeed = this.baseBackgroundSpeed;
+        this.speedIncreaseInterval = 15000; // Increase speed every 15 seconds
+        
+        // Define the base text style
+        this.baseTextStyle = {
+            fontFamily: 'VT323',
+            fontSize: '24px',  // Made it bigger since VT323 is smaller than Press Start 2P
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 2
+        };
+
+        // Update tallyConfig to use baseTextStyle
+        this.tallyConfig = {
+            x: 0,
+            y: 0,
+            width: 0,
+            lineSpacing: 27,
+            fontSize: 36,
+            fontFamily: 'VT323',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 3,
+            align: 'left',
+            depth: 1000
+        };
+
+        // Add DEPTHS constants to the game scene
+        this.DEPTHS = {
+            BACKGROUND: 1,
+            STARS: 2,
+            MOON: 3,
+            CANDLES: 4,
+            POWERUPS: 5,
+            METEORS: 6,
+            PLAYER: 7,
+            LASER: 8,
+            DOLLARS: 9,
+            PARTICLES: 10,
+            UI: 1000
+        };
+
+        // Constants
+        this.SECONDS_IN_MINUTE = 60;
+        this.UI_DEPTH = 1000;
+
+        // Game configuration
+        this.gameConfig = {
+            duration: 180, // 3 minutes in seconds
+            phases: {
+                intro: { start: 180, end: 165 }, // First 15 seconds
+                early: { start: 165, end: 120 }, // 45 seconds
+                mid: { start: 120, end: 60 },    // 60 seconds
+                late: { start: 60, end: 20 },    // 40 seconds
+                final: { start: 20, end: 0 }     // Last 20 seconds
+            },
+            spawnRates: {
+                early: {
+                    greenCandle: 0.7,
+                    redCandle: 0.3,
+                    powerUps: 0.1
+                },
+                mid: {
+                    greenCandle: 0.5,
+                    redCandle: 0.5,
+                    powerUps: 0.15
+                },
+                late: {
+                    greenCandle: 0.3,
+                    redCandle: 0.7,
+                    powerUps: 0.2
+                }
+            },
+            redCandleDelay: 10,
+            initialSpawnDelay: 1000,
+            minSpawnDelay: 300,
+            spawnRateIncreaseStart: 0.2,
+            spawnRateDecreaseFactor: 0.9,
+            candleSpeeds: {
+                short: 150,
+                mid: 130,
+                tall: 110
+            },
+            candleScales: {
+                short: 0.4,
+                mid: 0.5,
+                tall: 0.6
+            },
+            speedIncreaseFactor: 200,
+            redSpeedMultiplier: 1.5,
+            redSpeedIncreaseFactor: 2,
+            redProbabilityFactor: 0.7,
+            spawnStopTime: 10,
+            moonGlassesStopTime: 20,
+            asteroidExitTime: 15
+        };
+
+        // Moon configuration (without game-dependent values)
+        this.moonConfig = {
+            startY: -1000,
+            entryDuration: 15000,
+            finalYPercentage: 0.5,
+            startTime: 20
+        };
+
+        // Game state
+        this.gameTime = this.gameConfig.duration;
+        this.difficultyFactor = 0;
+        this.score = 0;
+        this.scoreMultiplier = 1;
+        this.consecutiveGreenCandles = 0;
+        this.redCandlesEnabled = false;
+
+        // Game objects
+        this.player = null;
+        this.candles = null;
+        this.meteors = null;
+        this.background = null;
+        this.targetPosition = new Phaser.Math.Vector2(0, 0);
+        this.isPointerInGame = true;
+
+        // UI elements
+        this.scoreText = null;
+        this.timerText = null;
+        this.multiplierText = null;
+
+        // Timers and spawners
+        this.spawnTimer = null;
+        this.meteorSpawnTimer = null;
+        this.meteorChunkTimer = null;
+        this.moonGlassesTimer = null;
+
+        // Audio
+        this.backgroundMusic = null;
+        this.greenSounds = [];
+        this.redSounds = [];
+
+        // Particles
+        this.particles = null;
+
+        // Motivational text
+        this.motivationalTexts = [
+            "Abundance flows\nto you!",
+            "Success is your\nbirthright!",
+            "You're attracting\nwealth!",
+            "Luxury embraces\nyou!",
+            "Prosperity is\nyour reality!",
+            "You deserve the\nbest in life!",
+            "Wealth finds its\nway to you!",
+            "You're a magnet\nfor success!",
+            "Your dreams are\nmanifesting now!",
+            "You're living your\nbest life!",
+            "HODL to the moon!",
+            "Diamond hands\nwin always!",
+            "Pump it up!",
+            "To the moon\nand beyond!",
+            "Lambo soon!",
+            "We're all gonna\nmake it!",
+            "Buy the dip!",
+            "FOMO is real!",
+            "Wen moon?",
+            "This is the way!"
+        ];
+        this.textColors = ['#FFD700', '#FF4500', '#32CD32'];
+        this.currentText = null;
+
+        // Stars
+        this.starsParticles = null;
+        this.starsBack = null;
+        this.starsMid = null;
+        this.starsFront = null;
+
+        // Input
+        this.cursors = null;
+        this.moon = null;
+
+        // Add zoom configuration
+        this.zoomConfig = {
+            startTime: 60,        // Seconds before the end when zoom starts
+            duration: 60,         // Duration of zoom in seconds
+            startScale: 1,        // Keep the current scale as starting point
+            endScale: 0.3        // Zoom out to half size (adjust this value as needed)
+        };
+        this.isZooming = false;
+        this.zoomProgress = 0;
+
+        // Add tracking for candles and dollar signs
+        this.totalGreenCandles = 0;
+        this.collectedGreenCandles = 0;
+        this.totalRedCandles = 0;
+        this.avoidedRedCandles = 0;
+        this.totalDollarSigns = 0;
+        this.collectedDollarSigns = 0;
+        this.allTimeHigh = 0;
+
+        // Add a custom font
+        this.fontStyle = { 
+            fontFamily: 'VT323', // Remove the quotes around Press Start 2P
+            fontSize: '16px', 
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 4
+        };
+
+        this.hasMoonglassesBonus = false;
+        this.dollarsCollected = 0;
+        this.isBonusActive = false;
+        this.bonusDuration = 7000; // 7 seconds in milliseconds
+        this.originalPlayerSprite = 'player';  // Add this line
+
+        // Initialize tallyConfig with default values
+        this.tallyConfig = {
+            x: 0,
+            y: 0,
+            width: 0,
+            lineSpacing: 20,
+            fontSize: 16,
+            fontFamily: 'VT323', // Remove the extra quotes
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 3,
+            align: 'left',
+            depth: 1000
+        };
+
+        // Add these properties to the constructor
+        this.dollarCollectCount = 0;
+        this.isSuperBonusActive = false;
+        this.bonusDuration = 10000; // 10 seconds
+        this.laserBeam = null;
+
+        // Power-up manager
+        this.powerUps = null;
+
+        // Initialize dollarSigns array
+        this.dollarSigns = [];
+
+        // Add this property to track gravitational pull
+        this.gravitationalPull = {
+            active: false,
+            radius: 150,  // Radius of gravitational effect
+            strength: 200 // Strength of the pull
+        };
+
+        // In your MainGame class constructor, add:
+        this.scoreHistory = [];
+        this.lastLoggedTime = 0;
+        this.scoreLoggingInterval = 250; // Log every 250ms
+        
+        // Add a property to track the timer event
+        this.gameTimer = null;
+
+        // Add this property to track the last update time
+        this.lastUpdateTime = 0;
+    }
+
+    init() {
+        this.gameTime = this.gameConfig.duration;
+        this.difficultyFactor = 0;
+        this.score = 0;
+        this.scoreMultiplier = 1;
+        this.consecutiveGreenCandles = 0;
+        this.redCandlesEnabled = false;
+        this.isZooming = false;
+        this.zoomProgress = 0;
+        this.totalGreenCandles = 0;
+        this.collectedGreenCandles = 0;
+        this.totalRedCandles = 0;
+        this.avoidedRedCandles = 0;
+        this.totalDollarSigns = 0;
+        this.collectedDollarSigns = 0;
+        this.allTimeHigh = 0;
+        this.hasMoonglassesBonus = false;
+        this.dollarsCollected = 0;
+        this.isBonusActive = false;
+        this.dollarCollectCount = 0;
+        this.isSuperBonusActive = false;
+        this.totalDollarSigns = 0;
+        this.collectedDollarSigns = 0;
+        this.dollarsCollected = 0;        
+        // Reset background speed
+        this.currentBackgroundSpeed = this.baseBackgroundSpeed;
+    }
+
+    preload() {
+        try {
+            // Create a loading bar
+            let loadingBar = this.add.graphics({
+                fillStyle: {
+                    color: 0xffffff
+                }
+            });
+
+            // Add error handling for load events
+            this.load.on('loaderror', (file) => {
+                console.error('Error loading file:', file.src);
+            });
+
+            this.load.on('progress', (percent) => {
+                loadingBar.fillRect(0, this.game.renderer.height / 2, this.game.renderer.width * percent, 50);
+            });
+
+            this.load.on('complete', () => {
+                loadingBar.destroy();
+            });
+
+            // Load assets with error handling
+            Object.entries(ASSETS.images).forEach(([key, value]) => {
+                try {
+                    this.load.image(key, value);
+                } catch (error) {
+                    console.error(`Error loading image ${key}:`, error);
+                }
+            });
+
+            Object.entries(ASSETS.audio).forEach(([key, value]) => {
+                try {
+                    this.load.audio(key, value);
+                } catch (error) {
+                    console.error(`Error loading audio ${key}:`, error);
+                }
+            });
+
+        } catch (error) {
+            console.error('Error in preload:', error);
+        }
+
+        // Add any other preload code here (e.g., scanlines)
+        // Create scanlines texture programmatically
+        const graphics = this.add.graphics();
+        graphics.lineStyle(1, 0xffffff);
+        for (let y = 0; y < 100; y += 2) {
+            graphics.moveTo(0, y);
+            graphics.lineTo(100, y);
+        }
+        graphics.generateTexture('scanlines', 100, 100);
+        graphics.destroy();
+
+        this.backgroundMusic = null;
+
+    }
+
+    create() {
+        // Add these properties
+        this.gameEnded = false;
+        this.hasReachedMoon = false;
+        this.controlsEnabled = true;
+        
+        // Stop any existing background music
+        if (this.game.backgroundMusic) {
+            this.game.backgroundMusic.stop();
+        }
+
+        // Create new background music instance
+        this.game.backgroundMusic = this.sound.add('backgroundMusic', {
+            loop: true,
+            volume: 0.5
+        });
+        this.game.backgroundMusic.play();
+
+        // Start with a black screen
+        this.cameras.main.fadeFrom(1000, 0, 0, 0);
+
+        this.init();  // Call init method to reset game state
+        
+        // Initialize game-dependent values
+        this.moonConfig.endY = this.sys.game.config.height * this.moonConfig.finalYPercentage;
+
+        // Destroy existing game objects
+        if (this.candles) {
+            this.candles.destroy(true);
+        }
+        if (this.meteors) {
+            this.meteors.destroy(true);
+        }
+        if (this.dollarSigns) {
+            this.dollarSigns.forEach(dollar => dollar.destroy());
+        }
+        if (this.moon) {
+            this.moon.destroy();
+        }
+        if (this.player) {
+            this.player.destroy();
+        }
+        
+        // Create new game objects
+        this.candles = this.physics.add.group();
+        this.meteors = this.physics.add.group();
+
+        // Reset the moon
+        this.resetMoon();
+
+        // Initialize background
+        this.background = this.add.tileSprite(
+            0,                          // x position
+            0,                          // y position
+            this.game.config.width,     // width
+            this.game.config.height,    // height
+            'background'
+        );
+        this.background.setOrigin(0, 0);
+        this.background.setScale(1);    // Adjust scale to zoom out the pattern
+        this.background.setAlpha(0.3);  // Keep the existing alpha
+        this.background.setDepth(this.DEPTHS.BACKGROUND);  // Ensure proper layering
+        
+        this.background = this.add.tileSprite(0, 0, this.game.config.width, this.game.config.height, 'background')
+        .setOrigin(0, 0)
+        .setDepth(DEPTHS.BACKGROUND);
+    
+    // Create chart
+    this.chart = new GameChart(this);
+
+        // Initialize player
+        this.player = this.physics.add.sprite(config.width / 2, config.height * 0.8, this.originalPlayerSprite);
+        this.player.setScale(0.3);
+        this.player.setDepth(6);
+
+        // Adjust player's collision body
+        this.player.body.setSize(this.player.width * 0.5, this.player.height * 0.5);
+        this.player.body.setOffset(this.player.width * 0.25, this.player.height * 0.25);
+
+        // Remove world bounds collision
+        this.player.setCollideWorldBounds(false);
+
+        // Update score text
+    /*  this.scoreText = this.add.text(10, 10, 'Market Cap: $0', {
+            fontSize: '20px',
+            fill: '#ffffff'
+        }).setDepth(this.UI_DEPTH);
+
+    /*  // Timer text
+        this.timerText = this.add.text(10, 40, 'Time: 3:00', {
+            fontSize: '20px',
+            fill: '#ffffff'
+        }).setDepth(this.UI_DEPTH);
+
+        // Multiplier text
+        this.multiplierText = this.add.text(10, 70, 'Multiplier: 1x', {
+            fontSize: '20px',
+            fill: '#ffffff'
+        }).setDepth(this.UI_DEPTH);*/
+
+        // Initialize particle system
+        this.particles = this.add.particles('particle');
+
+        // Initialize sound pools
+        this.greenSounds = ['green1', 'green2', 'green3', 'green4', 'green5', 'green6', 'green7', 'green8'];
+        this.redSounds = ['red1', 'red2', 'red3', 'red4', 'red5', 'red6', 'red7', 'red8'];
+
+        // Initialize input
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.targetPosition = new Phaser.Math.Vector2(this.player.x, this.player.y);
+
+        this.input.on('pointermove', (pointer) => {
+            this.targetPosition.set(pointer.x, pointer.y);
+        });
+
+        this.input.on('pointerout', () => {
+            this.isPointerInGame = false;
+        });
+
+        this.input.on('pointerover', () => {
+            this.isPointerInGame = true;
+        });
+
+        // Set up collisions
+        this.physics.add.overlap(this.player, this.candles, this.collectCandle, null, this);
+        this.physics.add.overlap(this.player, this.meteors, this.collectMeteor, null, this);
+
+        // Add power-up collision detection
+        this.physics.add.overlap(
+            this.player,
+            this.children.getAll('texture.key', 'moonglasses'),
+            (player, powerup) => this.powerUps.collectMoonGlasses(player, powerup),
+            null,
+            this
+        );
+        
+        this.physics.add.overlap(
+            this.player,
+            this.children.getAll('texture.key', 'crystalball'),
+            (player, powerup) => this.powerUps.collectCrystalBall(player, powerup),
+            null,
+            this
+        );
+        
+        // Set up timers and events
+        this.time.addEvent({
+            delay: 1000,
+            callback: this.updateGameTime,
+            callbackScope: this,
+            loop: true
+        });
+
+        this.spawnTimer = this.time.addEvent({
+            delay: this.gameConfig.initialSpawnDelay,
+            callback: this.spawnCandlestick,
+            callbackScope: this,
+            loop: true
+        });
+
+        this.time.addEvent({
+            delay: 10000,
+            callback: this.increaseSpawnRate,
+            callbackScope: this,
+            loop: true
+        });
+
+        this.time.delayedCall(this.gameConfig.redCandleDelay * 1000, () => {
+            this.redCandlesEnabled = true;
+            console.log("Red candles enabled");
+        });
+
+        this.time.delayedCall(120000, this.startMeteorSpawning, [], this);
+
+        // Create star field
+        this.createStarField();
+
+        // Set depths for various game objects
+        this.background.setDepth(1);
+        this.starsParticles.setDepth(2);
+        this.moon.setDepth(3);
+        this.candles.setDepth(4);
+        this.meteors.setDepth(5);
+        this.player.setDepth(6);
+        this.particles.setDepth(7);
+
+        // Set depths for UI elements
+        if (this.scoreText) this.scoreText.setDepth(10);
+        if (this.timerText) this.timerText.setDepth(10);
+        if (this.multiplierText) this.multiplierText.setDepth(10);
+        
+        // Set depth for motivational text
+        if (this.currentText) this.currentText.setDepth(10);
+
+        // Display motivational text
+        this.displayMotivationalText();
+
+        // Set up the moon entry timer
+        const moonEntryDelay = this.gameConfig.duration * 1000 - this.moonConfig.startTime * 1000;
+        console.log('Setting up moon entry timer. Delay:', moonEntryDelay);
+        this.time.delayedCall(moonEntryDelay, this.startMoonEntry, [], this);
+
+        // Update tallyConfig with actual dimensions
+        this.tallyConfig.x = this.cameras.main.width * 0.1;
+        this.tallyConfig.y = this.cameras.main.height * 0.2;
+        this.tallyConfig.width = this.cameras.main.width * 0.8;
+
+        this.tallySound = this.sound.add('tally');
+
+        // Initialize PowerUpManager
+        this.powerUps = new PowerUpManager(this);
+
+        // Initialize dollarSigns array
+        this.dollarSigns = [];
+
+        // Create UI
+        this.createUI();
+
+        this.whaleSound = this.sound.add('whale_sound');
+
+        // Add speed increase timer
+        this.time.addEvent({
+            delay: this.speedIncreaseInterval,
+            callback: this.increaseBackgroundSpeed,
+            callbackScope: this,
+            loop: true
+        });
+
+        // Create chart after background but before other elements
         this.chart = new GameChart(this);
 
-            // Initialize player
-            this.player = this.physics.add.sprite(config.width / 2, config.height * 0.8, this.originalPlayerSprite);
-            this.player.setScale(0.3);
-            this.player.setDepth(6);
+        // Add initial point
+        this.chart.addDataPoint(0);
 
-            // Adjust player's collision body
-            this.player.body.setSize(this.player.width * 0.5, this.player.height * 0.5);
-            this.player.body.setOffset(this.player.width * 0.25, this.player.height * 0.25);
+        // Set up regular updates
+        this.time.addEvent({
+            delay: 100, // Update every 100ms
+            callback: () => {
+                if (this.score !== undefined) {
+                    this.chart.addDataPoint(this.score);
+                }
+            },
+            loop: true
+        });
 
-            // Remove world bounds collision
-            this.player.setCollideWorldBounds(false);
+        // Initialize game time to exactly 3 minutes (180 seconds)
+        this.gameTime = GAME_SETTINGS.DURATION; // Should be 180
 
-            // Update score text
-        /*  this.scoreText = this.add.text(10, 10, 'Market Cap: $0', {
-                fontSize: '20px',
-                fill: '#ffffff'
-            }).setDepth(this.UI_DEPTH);
+        // Create single timer event and store reference
+        this.gameTimer = this.time.addEvent({
+            delay: 100,  // Update every 100ms for smoother countdown
+            callback: this.updateGameTime,
+            callbackScope: this,
+            loop: true
+        });
 
-        /*  // Timer text
-            this.timerText = this.add.text(10, 40, 'Time: 3:00', {
-                fontSize: '20px',
-                fill: '#ffffff'
-            }).setDepth(this.UI_DEPTH);
+        // Debug log to confirm timer creation
+        console.log('Game timer created');
+    }
 
-            // Multiplier text
-            this.multiplierText = this.add.text(10, 70, 'Multiplier: 1x', {
-                fontSize: '20px',
-                fill: '#ffffff'
-            }).setDepth(this.UI_DEPTH);*/
-
-            // Initialize particle system
-            this.particles = this.add.particles('particle');
-
-            // Initialize sound pools
-            this.greenSounds = ['green1', 'green2', 'green3', 'green4', 'green5', 'green6', 'green7', 'green8'];
-            this.redSounds = ['red1', 'red2', 'red3', 'red4', 'red5', 'red6', 'red7', 'red8'];
-
-            // Initialize input
-            this.cursors = this.input.keyboard.createCursorKeys();
-            this.targetPosition = new Phaser.Math.Vector2(this.player.x, this.player.y);
-
-            this.input.on('pointermove', (pointer) => {
-                this.targetPosition.set(pointer.x, pointer.y);
-            });
-
-            this.input.on('pointerout', () => {
-                this.isPointerInGame = false;
-            });
-
-            this.input.on('pointerover', () => {
-                this.isPointerInGame = true;
-            });
-
-            // Set up collisions
-            this.physics.add.overlap(this.player, this.candles, this.collectCandle, null, this);
-            this.physics.add.overlap(this.player, this.meteors, this.collectMeteor, null, this);
-
-            // Add power-up collision detection
-            this.physics.add.overlap(
-                this.player,
-                this.children.getAll('texture.key', 'moonglasses'),
-                (player, powerup) => this.powerUps.collectMoonGlasses(player, powerup),
-                null,
-                this
-            );
-            
-            this.physics.add.overlap(
-                this.player,
-                this.children.getAll('texture.key', 'crystalball'),
-                (player, powerup) => this.powerUps.collectCrystalBall(player, powerup),
-                null,
-                this
-            );
-            
-            // Set up timers and events
-            this.time.addEvent({
-                delay: 1000,
-                callback: this.updateGameTime,
-                callbackScope: this,
-                loop: true
-            });
-
-            this.spawnTimer = this.time.addEvent({
-                delay: this.gameConfig.initialSpawnDelay,
-                callback: this.spawnCandlestick,
-                callbackScope: this,
-                loop: true
-            });
-
-            this.time.addEvent({
-                delay: 10000,
-                callback: this.increaseSpawnRate,
-                callbackScope: this,
-                loop: true
-            });
-
-            this.time.delayedCall(this.gameConfig.redCandleDelay * 1000, () => {
-                this.redCandlesEnabled = true;
-                console.log("Red candles enabled");
-            });
-
-            this.time.delayedCall(120000, this.startMeteorSpawning, [], this);
-
-            // Create star field
-            this.createStarField();
-
-            // Set depths for various game objects
-            this.background.setDepth(1);
-            this.starsParticles.setDepth(2);
-            this.moon.setDepth(3);
-            this.candles.setDepth(4);
-            this.meteors.setDepth(5);
-            this.player.setDepth(6);
-            this.particles.setDepth(7);
-
-            // Set depths for UI elements
-            if (this.scoreText) this.scoreText.setDepth(10);
-            if (this.timerText) this.timerText.setDepth(10);
-            if (this.multiplierText) this.multiplierText.setDepth(10);
-            
-            // Set depth for motivational text
-            if (this.currentText) this.currentText.setDepth(10);
-
-            // Display motivational text
-            this.displayMotivationalText();
-
-            // Set up the moon entry timer
-            const moonEntryDelay = this.gameConfig.duration * 1000 - this.moonConfig.startTime * 1000;
-            console.log('Setting up moon entry timer. Delay:', moonEntryDelay);
-            this.time.delayedCall(moonEntryDelay, this.startMoonEntry, [], this);
-
-            // Update tallyConfig with actual dimensions
-            this.tallyConfig.x = this.cameras.main.width * 0.1;
-            this.tallyConfig.y = this.cameras.main.height * 0.2;
-            this.tallyConfig.width = this.cameras.main.width * 0.8;
-
-            this.tallySound = this.sound.add('tally');
-
-            // Initialize PowerUpManager
-            this.powerUps = new PowerUpManager(this);
-
-            // Initialize dollarSigns array
-            this.dollarSigns = [];
-
-            // Create UI
-            this.createUI();
-
-            this.whaleSound = this.sound.add('whale_sound');
-
-            // Add speed increase timer
-            this.time.addEvent({
-                delay: this.speedIncreaseInterval,
-                callback: this.increaseBackgroundSpeed,
-                callbackScope: this,
-                loop: true
-            });
-
-            // Create chart after background but before other elements
-            this.chart = new GameChart(this);
-
-            // Add initial point
-            this.chart.addDataPoint(0);
-
-            // Set up regular updates
-            this.time.addEvent({
-                delay: 100, // Update every 100ms
-                callback: () => {
-                    if (this.score !== undefined) {
-                        this.chart.addDataPoint(this.score);
-                    }
-                },
-                loop: true
-            });
-
-            // Initialize game time to exactly 3 minutes (180 seconds)
-            this.gameTime = GAME_SETTINGS.DURATION; // Should be 180
-
-            // Create single timer event and store reference
-            this.gameTimer = this.time.addEvent({
-                delay: 100,  // Update every 100ms for smoother countdown
-                callback: this.updateGameTime,
-                callbackScope: this,
-                loop: true
-            });
-
-            // Debug log to confirm timer creation
-            console.log('Game timer created');
-        }
-
-        updateGameTime() {
-            const currentTime = this.time.now;
-            if (!this.lastUpdateTime) {
-                this.lastUpdateTime = currentTime;
-                return;
-            }
-
-            // Calculate actual elapsed time in seconds
-            const deltaSeconds = (currentTime - this.lastUpdateTime) / 1000;
-            this.gameTime = Math.max(0, this.gameTime - deltaSeconds);
-
-            // Update timer display
-            const minutes = Math.floor(this.gameTime / 60);
-            const seconds = Math.floor(this.gameTime % 60);
-            this.timerText.setText(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-
+    updateGameTime() {
+        const currentTime = this.time.now;
+        if (!this.lastUpdateTime) {
             this.lastUpdateTime = currentTime;
-
-            // Check end conditions if time is up
-            if (this.gameTime <= 0) {
-                this.checkEndConditions();
-            }
+            return;
         }
 
-        resetMoon() {
-            console.log('Resetting moon');
-            if (this.moon) {
-                this.moon.destroy();
-            }
+        // Calculate actual elapsed time in seconds
+        const deltaSeconds = (currentTime - this.lastUpdateTime) / 1000;
+        this.gameTime = Math.max(0, this.gameTime - deltaSeconds);
 
-            const moonTexture = this.textures.get('moon');
-            const moonWidth = moonTexture.getSourceImage().width;
-            const moonHeight = moonTexture.getSourceImage().height;
-            const scaleFactor = (this.sys.game.config.width * 0.8) / moonWidth;
+        // Update timer display
+        const minutes = Math.floor(this.gameTime / 60);
+        const seconds = Math.floor(this.gameTime % 60);
+        this.timerText.setText(`${minutes}:${seconds.toString().padStart(2, '0')}`);
 
-            this.moon = this.add.image(this.sys.game.config.width / 2, this.moonConfig.startY, 'moon')
-                .setScale(scaleFactor)
-                .setDepth(3);
-            this.moon.setVisible(false);
+        this.lastUpdateTime = currentTime;
 
-            // Calculate final Y position based on percentage of screen height
-            this.moonConfig.finalY = this.sys.game.config.height * this.moonConfig.finalYPercentage;
+        // Check end conditions if time is up
+        if (this.gameTime <= 0) {
+            this.checkEndConditions();
+        }
+    }
+
+    resetMoon() {
+        console.log('Resetting moon');
+        if (this.moon) {
+            this.moon.destroy();
+        }
+
+        const moonTexture = this.textures.get('moon');
+        const moonWidth = moonTexture.getSourceImage().width;
+        const moonHeight = moonTexture.getSourceImage().height;
+        const scaleFactor = (this.sys.game.config.width * 0.8) / moonWidth;
+
+        this.moon = this.add.image(this.sys.game.config.width / 2, this.moonConfig.startY, 'moon')
+            .setScale(scaleFactor)
+            .setDepth(3);
+        this.moon.setVisible(false);
+
+        // Calculate final Y position based on percentage of screen height
+        this.moonConfig.finalY = this.sys.game.config.height * this.moonConfig.finalYPercentage;
+        
+        console.log('Moon reset. Position:', this.moon.y, 'Visible:', this.moon.visible);
+    }
+
+    startMoonEntry() {
+        console.log('Starting moon entry');
+        if (this.moon) {
+            this.moon.setVisible(true);
+            const remainingTime = this.gameTime * 1500; // Convert to milliseconds
+            const entryDuration = Math.min(this.moonConfig.entryDuration, remainingTime);
             
-            console.log('Moon reset. Position:', this.moon.y, 'Visible:', this.moon.visible);
-        }
-
-        startMoonEntry() {
-            console.log('Starting moon entry');
-            if (this.moon) {
-                this.moon.setVisible(true);
-                const remainingTime = this.gameTime * 1500; // Convert to milliseconds
-                const entryDuration = Math.min(this.moonConfig.entryDuration, remainingTime);
-                
-                this.tweens.add({
-                    targets: this.moon,
-                    y: this.moonConfig.finalY,
-                    duration: entryDuration,
-                    ease: 'Power2',
-                    onComplete: () => {
-                        console.log('Moon entry complete');
-                    }
-                });
-            } else {
-                console.log('Moon object does not exist');
-            }
-        }
-
-        startMeteorSpawning() {
-            console.log('Starting meteor spawning');
-            this.spawnMeteorChunk();
-
-            // Spawn a chunk of meteors every 15 seconds
-            this.meteorChunkTimer = this.time.addEvent({
-                delay: 15000,
-                callback: this.spawnMeteorChunk,
-                callbackScope: this,
-                loop: true
-            });
-        }
-
-        spawnMeteorChunk() {
-            console.log('Spawning meteor chunk');
-            // Spawn 2-3 meteors in quick succession
-            const meteorCount = Phaser.Math.Between(2, 3);
-            
-            this.meteorSpawnTimer = this.time.addEvent({
-                delay: 500, // 0.5 second between each meteor in a chunk
-                callback: this.spawnMeteor,
-                callbackScope: this,
-                repeat: meteorCount - 1
-            });
-        }
-
-        spawnMeteor() {
-            const x = Phaser.Math.Between(50, this.game.config.width - 50);
-            const meteor = this.meteors.create(x, -50, 'meteor');
-            
-            // Make meteors smaller (adjust these values as needed)
-            const scale = Phaser.Math.FloatBetween(0.3, 0.5);  // Changed from probably 0.6, 0.8
-            meteor.setScale(scale);
-            
-            // Increase meteor speed
-            const speed = Phaser.Math.Between(400, 600);  // Increased from probably 300, 400
-            const angle = Phaser.Math.Between(80, 100);   // Slightly adjust angle range if needed
-            
-            // Convert angle to velocity
-            const velocity = this.physics.velocityFromAngle(angle, speed);
-            meteor.setVelocity(velocity.x, velocity.y);
-            
-            // Keep the rotation logic
-            meteor.rotationSpeed = Phaser.Math.FloatBetween(-2, 2);
-            meteor.setDepth(this.DEPTHS.METEORS);
-        }
-
-        isOverlappingWithOtherMeteors(x) {
-            const buffer = 50; // Minimum distance between meteors
-            return this.meteors.getChildren().forEach(meteor => {
-                return Math.abs(meteor.x - x) < buffer;
-            });
-        }
-
-        update(time, delta) {
-            // Update background scroll speed
-            this.background.tilePositionY -= this.currentBackgroundSpeed;
-
-            // Update parallax effect based on current speed
-            const contraryMovement = (this.player.x - config.width / 2) * (0.005 * this.currentBackgroundSpeed);
-            this.background.tilePositionX += contraryMovement;
-
-            // Update star speeds based on current background speed
-            this.updateStarSpeeds(contraryMovement);
-
-            // Smoothly move towards the target position
-            const speed = 0.15;
-            this.player.x = Phaser.Math.Linear(this.player.x, this.targetPosition.x, speed);
-            this.player.y = Phaser.Math.Linear(this.player.y, this.targetPosition.y, speed);
-
-            // Add a very slight wobble effect
-            const wobbleAmount = 0.5;
-            const wobbleSpeed = 0.003;
-            this.player.x += Math.sin(this.time.now * wobbleSpeed) * wobbleAmount;
-            this.player.y += Math.cos(this.time.now * wobbleSpeed) * wobbleAmount;
-
-            // Only clamp the player's vertical position
-            const halfPlayerHeight = this.player.displayHeight / 2;
-            this.player.y = Phaser.Math.Clamp(this.player.y, halfPlayerHeight, config.height - halfPlayerHeight);
-
-            // Clean up off-screen candles
-            this.candles.getChildren().forEach(candle => {
-                if (candle.y > this.game.config.height + 50) {
-                    candle.destroy();
+            this.tweens.add({
+                targets: this.moon,
+                y: this.moonConfig.finalY,
+                duration: entryDuration,
+                ease: 'Power2',
+                onComplete: () => {
+                    console.log('Moon entry complete');
                 }
             });
+        } else {
+            console.log('Moon object does not exist');
+        }
+    }
 
-            // Handle meteors
-            if (this.meteors) {
-                this.meteors.getChildren().forEach(meteor => {
-                    if (meteor && meteor.active) {
-                        meteor.rotation += meteor.rotationSpeed;
-                        if (meteor.y > this.game.config.height + 50) {
+    startMeteorSpawning() {
+        console.log('Starting meteor spawning');
+        this.spawnMeteorChunk();
+
+        // Spawn a chunk of meteors every 15 seconds
+        this.meteorChunkTimer = this.time.addEvent({
+            delay: 15000,
+            callback: this.spawnMeteorChunk,
+            callbackScope: this,
+            loop: true
+        });
+    }
+
+    spawnMeteorChunk() {
+        console.log('Spawning meteor chunk');
+        // Spawn 2-3 meteors in quick succession
+        const meteorCount = Phaser.Math.Between(2, 3);
+        
+        this.meteorSpawnTimer = this.time.addEvent({
+            delay: 500, // 0.5 second between each meteor in a chunk
+            callback: this.spawnMeteor,
+            callbackScope: this,
+            repeat: meteorCount - 1
+        });
+    }
+
+    spawnMeteor() {
+        const x = Phaser.Math.Between(50, this.game.config.width - 50);
+        const meteor = this.meteors.create(x, -50, 'meteor');
+        
+        // Make meteors smaller (adjust these values as needed)
+        const scale = Phaser.Math.FloatBetween(0.3, 0.5);  // Changed from probably 0.6, 0.8
+        meteor.setScale(scale);
+        
+        // Increase meteor speed
+        const speed = Phaser.Math.Between(400, 600);  // Increased from probably 300, 400
+        const angle = Phaser.Math.Between(80, 100);   // Slightly adjust angle range if needed
+        
+        // Convert angle to velocity
+        const velocity = this.physics.velocityFromAngle(angle, speed);
+        meteor.setVelocity(velocity.x, velocity.y);
+        
+        // Keep the rotation logic
+        meteor.rotationSpeed = Phaser.Math.FloatBetween(-2, 2);
+        meteor.setDepth(this.DEPTHS.METEORS);
+    }
+
+    isOverlappingWithOtherMeteors(x) {
+        const buffer = 50; // Minimum distance between meteors
+        return this.meteors.getChildren().forEach(meteor => {
+            return Math.abs(meteor.x - x) < buffer;
+        });
+    }
+
+    update(time, delta) {
+        // Update background scroll speed
+        this.background.tilePositionY -= this.currentBackgroundSpeed;
+
+        // Update parallax effect based on current speed
+        const contraryMovement = (this.player.x - config.width / 2) * (0.005 * this.currentBackgroundSpeed);
+        this.background.tilePositionX += contraryMovement;
+
+        // Update star speeds based on current background speed
+        this.updateStarSpeeds(contraryMovement);
+
+        // Smoothly move towards the target position
+        const speed = 0.15;
+        this.player.x = Phaser.Math.Linear(this.player.x, this.targetPosition.x, speed);
+        this.player.y = Phaser.Math.Linear(this.player.y, this.targetPosition.y, speed);
+
+        // Add a very slight wobble effect
+        const wobbleAmount = 0.5;
+        const wobbleSpeed = 0.003;
+        this.player.x += Math.sin(this.time.now * wobbleSpeed) * wobbleAmount;
+        this.player.y += Math.cos(this.time.now * wobbleSpeed) * wobbleAmount;
+
+        // Only clamp the player's vertical position
+        const halfPlayerHeight = this.player.displayHeight / 2;
+        this.player.y = Phaser.Math.Clamp(this.player.y, halfPlayerHeight, config.height - halfPlayerHeight);
+
+        // Clean up off-screen candles
+        this.candles.getChildren().forEach(candle => {
+            if (candle.y > this.game.config.height + 50) {
+                candle.destroy();
+            }
+        });
+
+        // Handle meteors
+        if (this.meteors) {
+            this.meteors.getChildren().forEach(meteor => {
+                if (meteor && meteor.active) {
+                    meteor.rotation += meteor.rotationSpeed;
+                    if (meteor.y > this.game.config.height + 50) {
+                        meteor.destroy();
+                    }
+                }
+            });
+        }
+
+        // Update all-time high
+        this.allTimeHigh = Math.max(this.allTimeHigh, this.score);
+
+        // If you were updating multiplier text here, replace it with:
+        // this.updateMultiplierBar();
+
+        if (this.moon && this.moon.visible) {
+            if (!this.children.exists(this.moon)) {
+                console.log('Moon was removed from the scene, re-adding it');
+                this.add.existing(this.moon);
+            }
+        }
+
+        if (this.moon) {
+            console.log('Moon update - Visible:', this.moon.visible, 'Position:', this.moon.y);
+        } else {
+            console.log('Moon object does not exist');
+        }
+
+        // Wrap player around screen
+        this.wrapPlayerAroundScreen();
+
+        // Check if it's time to start the moon entry
+        if (this.gameTime <= this.moonConfig.startTime && !this.moon.visible) {
+            this.startMoonEntry();
+        }
+
+        if (this.powerUps) {
+            this.powerUps.update();
+        }
+
+        // Add this near the end of the update method
+        if (this.powerUps.isCrystalBallActive && this.candles) {
+            this.applyGravitationalPull();
+        }
+
+        // Update Pepe effects
+        if (this.powerUps && this.powerUps.isPepeActive) {
+            if (this.powerUps.updateVHSEffect) {
+                this.powerUps.updateVHSEffect();
+            }
+        }
+
+        // Update chart with current score and multiplier
+        if (this.chart) {
+            this.chart.addDataPoint(this.score, this.scoreMultiplier);
+        }
+
+        // Add this check for the final 7 seconds
+        if (this.gameTime <= GAME_SETTINGS.SPAWN_STOP_TIME && !this.spawningStopped) {
+            this.spawningStopped = true;
+            this.stopAllSpawning();
+            
+            // Start epic ending sequence
+            this.startEpicEnding();
+        }
+
+        // Add dramatic speed ramping
+        this.updateDramaticSpeed();
+
+        // Add this to your existing update method
+        if (!this.gameEnded) {
+            this.checkEndConditions();
+        }
+    }
+
+    wrapPlayerAroundScreen() {
+        const padding = 50; // Adjust this value to determine how far off-screen the player can go
+
+        if (this.player.x < -padding) {
+            this.player.x = this.game.config.width + padding;
+        } else if (this.player.x > this.game.config.width + padding) {
+            this.player.x = -padding;
+        }
+
+        if (this.player.y < -padding) {
+            this.player.y = this.game.config.height + padding;
+        } else if (this.player.y > this.game.config.height + padding) {
+            this.player.y = -padding;
+        }
+    }
+
+    updateStarSpeeds(contraryMovement) {
+        // Increased vertical speed multipliers
+        this.starsBack.setSpeedY({ min: this.currentBackgroundSpeed * 80, max: this.currentBackgroundSpeed * 100 });  // Doubled
+        this.starsMid.setSpeedY({ min: this.currentBackgroundSpeed * 120, max: this.currentBackgroundSpeed * 140 });  // Doubled
+        this.starsFront.setSpeedY({ min: this.currentBackgroundSpeed * 160, max: this.currentBackgroundSpeed * 180 }); // Doubled
+
+        // Keep parallax effect proportional
+        this.starsBack.setSpeedX({ min: contraryMovement * 13.2, max: contraryMovement * 14.2 });
+        this.starsMid.setSpeedX({ min: contraryMovement * 14.5, max: contraryMovement * 15.5 });
+        this.starsFront.setSpeedX({ min: contraryMovement * 15.8, max: contraryMovement * 16.8 });
+    }
+
+    handleAsteroidExit() {
+        if (this.gameTime <= this.gameConfig.asteroidExitTime) {
+            this.meteors.getChildren().forEach(meteor => {
+                if (!meteor.isExiting) {
+                    meteor.isExiting = true;
+                    this.tweens.add({
+                        targets: meteor,
+                        x: this.game.config.width + 100,
+                        y: -100,
+                        duration: 2000,
+                        ease: 'Power2',
+                        onComplete: () => {
                             meteor.destroy();
                         }
-                    }
-                });
-            }
-
-            // Update all-time high
-            this.allTimeHigh = Math.max(this.allTimeHigh, this.score);
-
-            // If you were updating multiplier text here, replace it with:
-            // this.updateMultiplierBar();
-
-            if (this.moon && this.moon.visible) {
-                if (!this.children.exists(this.moon)) {
-                    console.log('Moon was removed from the scene, re-adding it');
-                    this.add.existing(this.moon);
-                }
-            }
-
-            if (this.moon) {
-                console.log('Moon update - Visible:', this.moon.visible, 'Position:', this.moon.y);
-            } else {
-                console.log('Moon object does not exist');
-            }
-
-            // Wrap player around screen
-            this.wrapPlayerAroundScreen();
-
-            // Check if it's time to start the moon entry
-            if (this.gameTime <= this.moonConfig.startTime && !this.moon.visible) {
-                this.startMoonEntry();
-            }
-
-            if (this.powerUps) {
-                this.powerUps.update();
-            }
-
-            // Add this near the end of the update method
-            if (this.powerUps.isCrystalBallActive && this.candles) {
-                this.applyGravitationalPull();
-            }
-
-            // Update Pepe effects
-            if (this.powerUps && this.powerUps.isPepeActive) {
-                if (this.powerUps.updateVHSEffect) {
-                    this.powerUps.updateVHSEffect();
-                }
-            }
-
-            // Update chart with current score and multiplier
-            if (this.chart) {
-                this.chart.addDataPoint(this.score, this.scoreMultiplier);
-            }
-
-            // Add this check for the final 7 seconds
-            if (this.gameTime <= GAME_SETTINGS.SPAWN_STOP_TIME && !this.spawningStopped) {
-                this.spawningStopped = true;
-                this.stopAllSpawning();
-                
-                // Start epic ending sequence
-                this.startEpicEnding();
-            }
-
-            // Add dramatic speed ramping
-            this.updateDramaticSpeed();
-
-            // Add this to your existing update method
-            if (!this.gameEnded) {
-                this.checkEndConditions();
-            }
-        }
-
-        wrapPlayerAroundScreen() {
-            const padding = 50; // Adjust this value to determine how far off-screen the player can go
-
-            if (this.player.x < -padding) {
-                this.player.x = this.game.config.width + padding;
-            } else if (this.player.x > this.game.config.width + padding) {
-                this.player.x = -padding;
-            }
-
-            if (this.player.y < -padding) {
-                this.player.y = this.game.config.height + padding;
-            } else if (this.player.y > this.game.config.height + padding) {
-                this.player.y = -padding;
-            }
-        }
-
-        updateStarSpeeds(contraryMovement) {
-            // Increased vertical speed multipliers
-            this.starsBack.setSpeedY({ min: this.currentBackgroundSpeed * 80, max: this.currentBackgroundSpeed * 100 });  // Doubled
-            this.starsMid.setSpeedY({ min: this.currentBackgroundSpeed * 120, max: this.currentBackgroundSpeed * 140 });  // Doubled
-            this.starsFront.setSpeedY({ min: this.currentBackgroundSpeed * 160, max: this.currentBackgroundSpeed * 180 }); // Doubled
-
-            // Keep parallax effect proportional
-            this.starsBack.setSpeedX({ min: contraryMovement * 13.2, max: contraryMovement * 14.2 });
-            this.starsMid.setSpeedX({ min: contraryMovement * 14.5, max: contraryMovement * 15.5 });
-            this.starsFront.setSpeedX({ min: contraryMovement * 15.8, max: contraryMovement * 16.8 });
-        }
-
-        handleAsteroidExit() {
-            if (this.gameTime <= this.gameConfig.asteroidExitTime) {
-                this.meteors.getChildren().forEach(meteor => {
-                    if (!meteor.isExiting) {
-                        meteor.isExiting = true;
-                        this.tweens.add({
-                            targets: meteor,
-                            x: this.game.config.width + 100,
-                            y: -100,
-                            duration: 2000,
-                            ease: 'Power2',
-                            onComplete: () => {
-                                meteor.destroy();
-                            }
-                        });
-                    }
-                });
-            }
-        }
-
-        handleSpawnTimers() {
-            if (this.gameTime !== this.gameConfig.spawnStopTime) return;
-
-            this.stopTimer(this.spawnTimer, "Candlestick spawn timer");
-            this.stopTimer(this.meteorChunkTimer, "Meteor chunk timer");
-            this.stopTimer(this.meteorSpawnTimer, "Meteor spawn timer");
-        }
-
-        stopTimer(timer, timerName) {
-            if (timer) {
-                timer.remove(false);
-                console.log(`${timerName} stopped`);
-            }
-        }
-
-        updateTimerDisplay() {
-            if (!this.timerText) return;
-
-            const minutes = Math.floor(this.gameTime / this.SECONDS_IN_MINUTE);
-            const seconds = this.gameTime % this.SECONDS_IN_MINUTE;
-            this.timerText.setText(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-        }
-
-        spawnCandlestick() {
-            // Check if we should stop spawning
-            if (this.gameTime <= this.gameConfig.spawnStopTime) {
-                console.log("Spawning stopped");
-                return; // Exit the method early if we're in the last 10 seconds
-            }
-
-            const x = Phaser.Math.Between(0, this.game.config.width);
-            
-            let isGreen = true;
-            if (this.redCandlesEnabled) {
-                isGreen = Math.random() > (this.gameConfig.redProbabilityFactor * this.difficultyFactor);
-            }
-            
-            const size = Phaser.Math.Between(0, 2); // 0: short, 1: mid, 2: tall
-            const sizeKey = ['short', 'mid', 'tall'][size];
-            
-            let candleKey;
-            if (isGreen) {
-                candleKey = 'green' + sizeKey.charAt(0).toUpperCase() + sizeKey.slice(1);
-            } else {
-                candleKey = 'red' + sizeKey.charAt(0).toUpperCase() + sizeKey.slice(1);
-            }
-
-            let candle = this.candles.create(x, -50, candleKey);
-            candle.setDepth(4);
-
-            let scale = this.gameConfig.candleScales[sizeKey];
-            let baseSpeed = this.gameConfig.candleSpeeds[sizeKey];
-
-            const speedIncrease = this.gameConfig.speedIncreaseFactor * Math.pow(this.difficultyFactor, 1.5);
-            const colorSpeedFactor = isGreen ? 1 : this.gameConfig.redSpeedMultiplier + this.gameConfig.redSpeedIncreaseFactor * this.difficultyFactor;
-            const finalSpeed = baseSpeed + (speedIncrease * colorSpeedFactor);
-
-            candle.setScale(scale);
-            candle.setVelocityY(finalSpeed);
-            candle.isGreen = isGreen;
-            candle.size = size;
-
-            console.log(`Spawned ${isGreen ? 'green' : 'red'} candle. Speed: ${finalSpeed.toFixed(2)}, Difficulty: ${this.difficultyFactor.toFixed(2)}`);
-
-            if (isGreen) {
-                this.totalGreenCandles++;
-            } else {
-                this.totalRedCandles++;
-                this.avoidedRedCandles--; // Decrease avoided count when hitting a red candle
-            }
-        }
-
-        increaseSpawnRate() {
-            if (this.difficultyFactor > this.gameConfig.spawnRateIncreaseStart) {
-                const currentDelay = this.spawnTimer.delay;
-                const newDelay = Math.max(currentDelay * this.gameConfig.spawnRateDecreaseFactor, this.gameConfig.minSpawnDelay);
-                this.spawnTimer.delay = newDelay;
-                console.log(`Increased spawn rate. New delay: ${newDelay}ms`);
-            }
-        }
-
-        endGame() {
-            this.physics.pause();
-            this.time.removeAllEvents();
-            this.tweens.killAll();
-            
-            // Disable player input
-            this.input.off('pointermove');
-            
-            // If the moon entry hasn't finished, complete it instantly
-            if (this.moon && this.moon.y < this.moonConfig.finalY) {
-                this.tweens.add({
-                    targets: this.moon,
-                    y: this.moonConfig.finalY,
-                    scale: this.moonConfig.endSize,
-                    duration: 500,
-                    ease: 'Power2',
-                    onComplete: () => this.flyPlayerToMoon()
-                });
-            } else {
-                this.flyPlayerToMoon();
-            }
-
-            // Call the new method to show final tally
-            this.time.delayedCall(3000, this.showFinalTally, [], this);
-
-            if (this.powerUps) {
-                this.powerUps.clearTimers();
-            }
-
-            // Make sure to clean up the chart
-            if (this.chart) {
-                this.chart.destroy();
-            }
-        }
-
-        flyPlayerToMoon() {
-            // Create dramatic flash
-            this.cameras.main.flash(1000, 255, 255, 255);
-            
-            // Create dollar sign particle explosion around moon
-            const moonParticles = this.add.particles('dollar');
-            const emitter = moonParticles.createEmitter({
-                x: this.moon.x,
-                y: this.moon.y,
-                speed: { min: 200, max: 400 },
-                angle: { min: 0, max: 360 },
-                scale: { start: 0.2, end: 0 },
-                blendMode: 'ADD',
-                lifespan: 2000,
-                quantity: 3,
-                frequency: 50,
-                tint: [0xFFD700, 0xFFFFFF], // Gold and white tint
-                gravityY: 100,
-                rotate: { min: -180, max: 180 }
-            });
-
-            // Add spinning animation to player
-            this.tweens.add({
-                targets: this.player,
-                angle: 720, // Two full rotations (360 * 2)
-                scale: 0.5,  // Shrink slightly as it spins
-                x: this.moon.x,
-                y: this.moon.y,
-                duration: 2000,
-                ease: 'Cubic.easeIn',
-                onComplete: () => {
-                    // Hide player when it reaches the moon
-                    this.player.setVisible(false);
-                    
-                    // Add final burst effect
-                    emitter.explode(20, this.moon.x, this.moon.y);
-                    
-                    // Optional: Add a final flash
-                    this.cameras.main.flash(500, 255, 255, 255);
-                    
-                    // Stop emitter after the final burst
-                    this.time.delayedCall(100, () => {
-                        emitter.stop();
-                        // Optional: remove particles system after it's done
-                        this.time.delayedCall(2100, () => {
-                            moonParticles.destroy();
-                        });
                     });
                 }
             });
         }
+    }
 
-        showEndGameMessage() {
-            const finalScore = this.score;
-            const message = `Congratulations!\nYou've reached the moon!\nFinal Market Cap: $${finalScore}`;
+    handleSpawnTimers() {
+        if (this.gameTime !== this.gameConfig.spawnStopTime) return;
 
-            const textStyle = {
-                fontFamily: 'VT323',
-                fontSize: '24px', // Reduced from 32px since Press Start 2P runs larger
-                fill: '#ffffff',
-                stroke: '#000000',
-                strokeThickness: 2,
-                align: 'center',
-                lineSpacing: 20 // Add some spacing between lines for better readability
-            };
+        this.stopTimer(this.spawnTimer, "Candlestick spawn timer");
+        this.stopTimer(this.meteorChunkTimer, "Meteor chunk timer");
+        this.stopTimer(this.meteorSpawnTimer, "Meteor spawn timer");
+    }
 
-            const endText = this.add.text(
-                this.game.config.width / 2,
-                this.game.config.height / 2,
-                message,
-                textStyle
-            ).setOrigin(0.5);
+    stopTimer(timer, timerName) {
+        if (timer) {
+            timer.remove(false);
+            console.log(`${timerName} stopped`);
+        }
+    }
 
-            // Add a restart button
-            const restartButton = this.add.text(
-                this.game.config.width / 2,
-                this.game.config.height * 0.7,
-                'Play Again',
-                { ...textStyle, backgroundColor: '#4a4a4a', padding: { x: 10, y: 5 } }
-            ).setOrigin(0.5).setInteractive();
+    updateTimerDisplay() {
+        if (!this.timerText) return;
 
-            restartButton.on('pointerdown', () => {
-                this.scene.start('StartScene');  // Start from the beginning instead of restarting
-            });
+        const minutes = Math.floor(this.gameTime / this.SECONDS_IN_MINUTE);
+        const seconds = this.gameTime % this.SECONDS_IN_MINUTE;
+        this.timerText.setText(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+    }
+
+    spawnCandlestick() {
+        // Check if we should stop spawning
+        if (this.gameTime <= this.gameConfig.spawnStopTime) {
+            console.log("Spawning stopped");
+            return; // Exit the method early if we're in the last 10 seconds
         }
 
-        collectCandle(player, candle) {
-            if (!candle.active) return; // Ensure the candle is still active
+        const x = Phaser.Math.Between(0, this.game.config.width);
+        
+        let isGreen = true;
+        if (this.redCandlesEnabled) {
+            isGreen = Math.random() > (this.gameConfig.redProbabilityFactor * this.difficultyFactor);
+        }
+        
+        const size = Phaser.Math.Between(0, 2); // 0: short, 1: mid, 2: tall
+        const sizeKey = ['short', 'mid', 'tall'][size];
+        
+        let candleKey;
+        if (isGreen) {
+            candleKey = 'green' + sizeKey.charAt(0).toUpperCase() + sizeKey.slice(1);
+        } else {
+            candleKey = 'red' + sizeKey.charAt(0).toUpperCase() + sizeKey.slice(1);
+        }
 
-            candle.disableBody(true, true);
+        let candle = this.candles.create(x, -50, candleKey);
+        candle.setDepth(4);
 
-            let scoreChange;
-            let particleColor;
+        let scale = this.gameConfig.candleScales[sizeKey];
+        let baseSpeed = this.gameConfig.candleSpeeds[sizeKey];
 
-            if (this.powerUps.isSuperBonusActive) {
-                // In super bonus mode, every candle hit gives positive score
-                scoreChange = 100; // Award fixed positive score
-                particleColor = 0xFFFF00; // Yellow color for the laser mode
-            } else {
-                if (candle.texture.key.startsWith('green')) {
-                    // Increase green candle impact
-                    switch(candle.size) {
-                        case 0: scoreChange = 2000; break;  // short (was 500)
-                        case 1: scoreChange = 4000; break;  // mid (was 1000)
-                        case 2: scoreChange = 8000; break;  // tall (was 1500)
-                    }
-                    particleColor = 0x00ff00;
-                } else {
-                    // More dramatic red candle impact
-                    switch(candle.size) {
-                        case 0: scoreChange = -8000; break;   // short (was -5000)
-                        case 1: scoreChange = -16000; break;  // mid (was -10000)
-                        case 2: scoreChange = -32000; break;  // tall (was -15000)
-                    }
-                    particleColor = 0xff0000;
-                    
-                    // Screen shake for red candles
-                    this.cameras.main.shake(200, 0.03);
-                    // Red flash effect
-                    this.cameras.main.flash(300, 255, 0, 0, 0.3);
-                }
+        const speedIncrease = this.gameConfig.speedIncreaseFactor * Math.pow(this.difficultyFactor, 1.5);
+        const colorSpeedFactor = isGreen ? 1 : this.gameConfig.redSpeedMultiplier + this.gameConfig.redSpeedIncreaseFactor * this.difficultyFactor;
+        const finalSpeed = baseSpeed + (speedIncrease * colorSpeedFactor);
 
-                // Apply multiplier to green candles
-                if (candle.texture.key.startsWith('green')) {
-                    scoreChange *= this.scoreMultiplier;
-                }
-            }
+        candle.setScale(scale);
+        candle.setVelocityY(finalSpeed);
+        candle.isGreen = isGreen;
+        candle.size = size;
 
-            // Update score
-            this.score += scoreChange;
-            this.scoreText.setText('Market Cap: $' + this.score);
+        console.log(`Spawned ${isGreen ? 'green' : 'red'} candle. Speed: ${finalSpeed.toFixed(2)}, Difficulty: ${this.difficultyFactor.toFixed(2)}`);
 
-            // Create particle effect with smaller particles
-            let emitter = this.particles.createEmitter({
-                x: candle.x,
-                y: candle.y,
-                speed: { min: 100, max: 200 },
-                angle: { min: 0, max: 360 },
-                scale: { start: 0.25, end: 0 }, // Reduced from 0.5
-                blendMode: 'ADD',
-                lifespan: 800,
-                gravityY: 300,
-                quantity: 20,
-                tint: particleColor
-            });
-            emitter.explode(20, candle.x, candle.y);
+        if (isGreen) {
+            this.totalGreenCandles++;
+        } else {
+            this.totalRedCandles++;
+            this.avoidedRedCandles--; // Decrease avoided count when hitting a red candle
+        }
+    }
 
-            // Create floating score text
-            let scorePopupText = (scoreChange > 0 ? '+' : '') + scoreChange;
-            if (candle.texture.key.startsWith('green') && this.scoreMultiplier > 1 && !this.powerUps.isSuperBonusActive) {
-                scorePopupText += ` (${this.scoreMultiplier}x)`;
-            }
-            let scorePopup = this.add.text(candle.x, candle.y, scorePopupText, {
-                fontSize: '24px',
-                fill: scoreChange > 0 ? '#00ff00' : '#ff0000'
-            }).setOrigin(0.5).setDepth(this.UI_DEPTH);
+    increaseSpawnRate() {
+        if (this.difficultyFactor > this.gameConfig.spawnRateIncreaseStart) {
+            const currentDelay = this.spawnTimer.delay;
+            const newDelay = Math.max(currentDelay * this.gameConfig.spawnRateDecreaseFactor, this.gameConfig.minSpawnDelay);
+            this.spawnTimer.delay = newDelay;
+            console.log(`Increased spawn rate. New delay: ${newDelay}ms`);
+        }
+    }
 
+    endGame() {
+        this.physics.pause();
+        this.time.removeAllEvents();
+        this.tweens.killAll();
+        
+        // Disable player input
+        this.input.off('pointermove');
+        
+        // If the moon entry hasn't finished, complete it instantly
+        if (this.moon && this.moon.y < this.moonConfig.finalY) {
             this.tweens.add({
-                targets: scorePopup,
-                y: scorePopup.y - 50,
-                alpha: 0,
-                duration: 1000,
+                targets: this.moon,
+                y: this.moonConfig.finalY,
+                scale: this.moonConfig.endSize,
+                duration: 500,
                 ease: 'Power2',
-                onComplete: () => scorePopup.destroy()
+                onComplete: () => this.flyPlayerToMoon()
             });
+        } else {
+            this.flyPlayerToMoon();
+        }
 
-            // Play sound effect only if not in super bonus mode
-            if (!this.powerUps.isSuperBonusActive) {
-                const isGreen = candle.texture.key.startsWith('green');
-                const soundPool = isGreen ? this.greenSounds : this.redSounds;
-                const randomSound = Phaser.Utils.Array.GetRandom(soundPool);
-                this.sound.play(randomSound, { volume: 0.45 }); // Lowered from default (0.3 or 1.0)
+        // Call the new method to show final tally
+        this.time.delayedCall(3000, this.showFinalTally, [], this);
+
+        if (this.powerUps) {
+            this.powerUps.clearTimers();
+        }
+
+        // Make sure to clean up the chart
+        if (this.chart) {
+            this.chart.destroy();
+        }
+    }
+
+    flyPlayerToMoon() {
+        // Create dramatic flash
+        this.cameras.main.flash(1000, 255, 255, 255);
+        
+        // Create dollar sign particle explosion around moon
+        const moonParticles = this.add.particles('dollar');
+        const emitter = moonParticles.createEmitter({
+            x: this.moon.x,
+            y: this.moon.y,
+            speed: { min: 200, max: 400 },
+            angle: { min: 0, max: 360 },
+            scale: { start: 0.2, end: 0 },
+            blendMode: 'ADD',
+            lifespan: 2000,
+            quantity: 3,
+            frequency: 50,
+            tint: [0xFFD700, 0xFFFFFF], // Gold and white tint
+            gravityY: 100,
+            rotate: { min: -180, max: 180 }
+        });
+
+        // Add spinning animation to player
+        this.tweens.add({
+            targets: this.player,
+            angle: 720, // Two full rotations (360 * 2)
+            scale: 0.5,  // Shrink slightly as it spins
+            x: this.moon.x,
+            y: this.moon.y,
+            duration: 2000,
+            ease: 'Cubic.easeIn',
+            onComplete: () => {
+                // Hide player when it reaches the moon
+                this.player.setVisible(false);
+                
+                // Add final burst effect
+                emitter.explode(20, this.moon.x, this.moon.y);
+                
+                // Optional: Add a final flash
+                this.cameras.main.flash(500, 255, 255, 255);
+                
+                // Stop emitter after the final burst
+                this.time.delayedCall(100, () => {
+                    emitter.stop();
+                    // Optional: remove particles system after it's done
+                    this.time.delayedCall(2100, () => {
+                        moonParticles.destroy();
+                    });
+                });
+            }
+        });
+    }
+
+    showEndGameMessage() {
+        const finalScore = this.score;
+        const message = `Congratulations!\nYou've reached the moon!\nFinal Market Cap: $${finalScore}`;
+
+        const textStyle = {
+            fontFamily: 'VT323',
+            fontSize: '24px', // Reduced from 32px since Press Start 2P runs larger
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 2,
+            align: 'center',
+            lineSpacing: 20 // Add some spacing between lines for better readability
+        };
+
+        const endText = this.add.text(
+            this.game.config.width / 2,
+            this.game.config.height / 2,
+            message,
+            textStyle
+        ).setOrigin(0.5);
+
+        // Add a restart button
+        const restartButton = this.add.text(
+            this.game.config.width / 2,
+            this.game.config.height * 0.7,
+            'Play Again',
+            { ...textStyle, backgroundColor: '#4a4a4a', padding: { x: 10, y: 5 } }
+        ).setOrigin(0.5).setInteractive();
+
+        restartButton.on('pointerdown', () => {
+            this.scene.start('StartScene');  // Start from the beginning instead of restarting
+        });
+    }
+
+    collectCandle(player, candle) {
+        if (!candle.active) return; // Ensure the candle is still active
+
+        candle.disableBody(true, true);
+
+        let scoreChange;
+        let particleColor;
+
+        if (this.powerUps.isSuperBonusActive) {
+            // In super bonus mode, every candle hit gives positive score
+            scoreChange = 100; // Award fixed positive score
+            particleColor = 0xFFFF00; // Yellow color for the laser mode
+        } else {
+            if (candle.texture.key.startsWith('green')) {
+                // Increase green candle impact
+                switch(candle.size) {
+                    case 0: scoreChange = 2000; break;  // short (was 500)
+                    case 1: scoreChange = 4000; break;  // mid (was 1000)
+                    case 2: scoreChange = 8000; break;  // tall (was 1500)
+                }
+                particleColor = 0x00ff00;
+            } else {
+                // More dramatic red candle impact
+                switch(candle.size) {
+                    case 0: scoreChange = -8000; break;   // short (was -5000)
+                    case 1: scoreChange = -16000; break;  // mid (was -10000)
+                    case 2: scoreChange = -32000; break;  // tall (was -15000)
+                }
+                particleColor = 0xff0000;
+                
+                // Screen shake for red candles
+                this.cameras.main.shake(200, 0.03);
+                // Red flash effect
+                this.cameras.main.flash(300, 255, 0, 0, 0.3);
             }
 
-            if (candle.isGreen) {
-                this.consecutiveGreenCandles++;
-                this.scoreMultiplier = Math.min(10, this.consecutiveGreenCandles);
-                this.collectedGreenCandles++;
-                // Update multiplier display with animation
-                this.updateMultiplierDisplay(this.scoreMultiplier);
-            } else {
-                this.consecutiveGreenCandles = 0;
-                this.scoreMultiplier = 1;
-                // Update multiplier display with animation
-                this.updateMultiplierDisplay(this.scoreMultiplier);
+            // Apply multiplier to green candles
+            if (candle.texture.key.startsWith('green')) {
+                scoreChange *= this.scoreMultiplier;
             }
         }
 
-        collectMeteor(player, meteor) {
-            if (!meteor || !meteor.active) return;
+        // Update score
+        this.score += scoreChange;
+        this.scoreText.setText('Market Cap: $' + this.score);
 
-            meteor.destroy();
+        // Create particle effect with smaller particles
+        let emitter = this.particles.createEmitter({
+            x: candle.x,
+            y: candle.y,
+            speed: { min: 100, max: 200 },
+            angle: { min: 0, max: 360 },
+            scale: { start: 0.25, end: 0 }, // Reduced from 0.5
+            blendMode: 'ADD',
+            lifespan: 800,
+            gravityY: 300,
+            quantity: 20,
+            tint: particleColor
+        });
+        emitter.explode(20, candle.x, candle.y);
 
-            // Increase meteor damage
-            const scoreDeduction = -50000; // Was -20000
-            this.score += scoreDeduction;
-            this.scoreText.setText('Market Cap: $' + this.score);
+        // Create floating score text
+        let scorePopupText = (scoreChange > 0 ? '+' : '') + scoreChange;
+        if (candle.texture.key.startsWith('green') && this.scoreMultiplier > 1 && !this.powerUps.isSuperBonusActive) {
+            scorePopupText += ` (${this.scoreMultiplier}x)`;
+        }
+        let scorePopup = this.add.text(candle.x, candle.y, scorePopupText, {
+            fontSize: '24px',
+            fill: scoreChange > 0 ? '#00ff00' : '#ff0000'
+        }).setOrigin(0.5).setDepth(this.UI_DEPTH);
 
-            // Reset multiplier
+        this.tweens.add({
+            targets: scorePopup,
+            y: scorePopup.y - 50,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => scorePopup.destroy()
+        });
+
+        // Play sound effect only if not in super bonus mode
+        if (!this.powerUps.isSuperBonusActive) {
+            const isGreen = candle.texture.key.startsWith('green');
+            const soundPool = isGreen ? this.greenSounds : this.redSounds;
+            const randomSound = Phaser.Utils.Array.GetRandom(soundPool);
+            this.sound.play(randomSound, { volume: 0.45 }); // Lowered from default (0.3 or 1.0)
+        }
+
+        if (candle.isGreen) {
+            this.consecutiveGreenCandles++;
+            this.scoreMultiplier = Math.min(10, this.consecutiveGreenCandles);
+            this.collectedGreenCandles++;
+            // Update multiplier display with animation
+            this.updateMultiplierDisplay(this.scoreMultiplier);
+        } else {
             this.consecutiveGreenCandles = 0;
             this.scoreMultiplier = 1;
+            // Update multiplier display with animation
             this.updateMultiplierDisplay(this.scoreMultiplier);
-
-            // Create particle effect with smaller particles
-            let emitter = this.particles.createEmitter({
-                x: meteor.x,
-                y: meteor.y,
-                speed: { min: 100, max: 200 },
-                angle: { min: 0, max: 360 },
-                scale: { start: 0.25, end: 0 }, // Reduced from 0.5
-                blendMode: 'ADD',
-                lifespan: 800,
-                gravityY: 300,
-                quantity: 30,
-                tint: 0xFF0000
-            });
-            emitter.explode(30, meteor.x, meteor.y);
-
-            // Screen shake
-            this.cameras.main.shake(200, 0.05);
-
-            // Create floating text
-            let meteorText = this.add.text(meteor.x, meteor.y, '-$50,000', {
-                fontSize: '24px',
-                fill: '#FF0000'
-            }).setOrigin(0.5).setDepth(this.UI_DEPTH);
-
-            this.tweens.add({
-                targets: meteorText,
-                y: meteorText.y - 50,
-                alpha: 0,
-                duration: 1000,
-                ease: 'Power2',
-                onComplete: () => meteorText.destroy()
-            });
-
-            // Play meteor sound effect
-            this.sound.play('meteorSound', { volume: 0.2 }); // Lowered from default
         }
+    }
 
-        collectDollar(player, dollar) {
-            if (!dollar.active) return;
+    collectMeteor(player, meteor) {
+        if (!meteor || !meteor.active) return;
 
-            // Calculate score based on collection count
-            const baseScore = 1000;
-            const collectionNumber = this.dollarsCollected + 1;
-            const score = baseScore * Math.pow(2, collectionNumber - 1);
+        meteor.destroy();
 
-            // Update score
-            this.score += score;
-            this.dollarsCollected++;
-            this.scoreText.setText('Market Cap: $' + this.score);
+        // Increase meteor damage
+        const scoreDeduction = -50000; // Was -20000
+        this.score += scoreDeduction;
+        this.scoreText.setText('Market Cap: $' + this.score);
 
-            // Create particle effect with smaller particles
-            let emitter = this.particles.createEmitter({
-                x: dollar.x,
-                y: dollar.y,
-                speed: { min: 100, max: 200 },
-                angle: { min: 0, max: 360 },
-                scale: { start: 0.25, end: 0 }, // Reduced from 0.5
-                blendMode: 'ADD',
-                lifespan: 800,
-                gravityY: 300,
-                quantity: 20,
-                tint: 0xFFD700
-            });
-            emitter.explode(20, dollar.x, dollar.y);
+        // Reset multiplier
+        this.consecutiveGreenCandles = 0;
+        this.scoreMultiplier = 1;
+        this.updateMultiplierDisplay(this.scoreMultiplier);
 
-            // Create floating score text
-            let scoreText = this.add.text(dollar.x, dollar.y, `+$${score.toLocaleString()}`, {
-                fontSize: '24px',
-                fill: '#FFD700'
-            }).setOrigin(0.5).setDepth(this.UI_DEPTH);
+        // Create particle effect with smaller particles
+        let emitter = this.particles.createEmitter({
+            x: meteor.x,
+            y: meteor.y,
+            speed: { min: 100, max: 200 },
+            angle: { min: 0, max: 360 },
+            scale: { start: 0.25, end: 0 }, // Reduced from 0.5
+            blendMode: 'ADD',
+            lifespan: 800,
+            gravityY: 300,
+            quantity: 30,
+            tint: 0xFF0000
+        });
+        emitter.explode(30, meteor.x, meteor.y);
 
-            this.tweens.add({
-                targets: scoreText,
-                y: scoreText.y - 50,
-                alpha: 0,
-                duration: 1000,
-                ease: 'Power2',
-                onComplete: () => scoreText.destroy()
-            });
+        // Screen shake
+        this.cameras.main.shake(200, 0.05);
 
-            // Play appropriate sound
-            if (this.dollarsCollected === 10) {
-                // Play special sound for final dollar
-                this.sound.play('final_dollar_sound');
-                
-                // Maybe add some extra effects for the final collection
-                this.cameras.main.flash(1000, 255, 215, 0); // Golden flash
-                
-                // Add celebratory text
-                let finalText = this.add.text(
-                    this.game.config.width / 2,
-                    this.game.config.height / 2,
-                    'MOONSHOT COMPLETE!',
-                    {
-                        fontSize: '48px',
-                        fill: '#FFD700',
-                        stroke: '#000000',
-                        strokeThickness: 6
-                    }
-                ).setOrigin(0.5).setDepth(this.UI_DEPTH + 1);
+        // Create floating text
+        let meteorText = this.add.text(meteor.x, meteor.y, '-$50,000', {
+            fontSize: '24px',
+            fill: '#FF0000'
+        }).setOrigin(0.5).setDepth(this.UI_DEPTH);
 
-                this.tweens.add({
-                    targets: finalText,
-                    scale: { from: 0.5, to: 1.5 },
-                    alpha: { from: 1, to: 0 },
-                    duration: 2000,
-                    ease: 'Power2',
-                    onComplete: () => finalText.destroy()
-                });
-            } else {
-                // Play regular dollar sound
-                this.sound.play('dollar_sound');
-            }
+        this.tweens.add({
+            targets: meteorText,
+            y: meteorText.y - 50,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => meteorText.destroy()
+        });
 
-            // Destroy the dollar
-            dollar.destroy();
+        // Play meteor sound effect
+        this.sound.play('meteorSound', { volume: 0.2 }); // Lowered from default
+    }
 
-            // Update the scale of dollar signs (20% smaller)
-            dollar.setScale(0.24); // Assuming original scale was 0.3
-        }
+    collectDollar(player, dollar) {
+        if (!dollar.active) return;
+
+        // Calculate score based on collection count
+        const baseScore = 1000;
+        const collectionNumber = this.dollarsCollected + 1;
+        const score = baseScore * Math.pow(2, collectionNumber - 1);
+
+        // Update score
+        this.score += score;
+        this.dollarsCollected++;
+        this.scoreText.setText('Market Cap: $' + this.score);
+
+        // Create particle effect with smaller particles
+        let emitter = this.particles.createEmitter({
+            x: dollar.x,
+            y: dollar.y,
+            speed: { min: 100, max: 200 },
+            angle: { min: 0, max: 360 },
+            scale: { start: 0.25, end: 0 }, // Reduced from 0.5
+            blendMode: 'ADD',
+            lifespan: 800,
+            gravityY: 300,
+            quantity: 20,
+            tint: 0xFFD700
+        });
+        emitter.explode(20, dollar.x, dollar.y);
+
+        // Create floating score text
+        let scoreText = this.add.text(dollar.x, dollar.y, `+$${score.toLocaleString()}`, {
+            fontSize: '24px',
+            fill: '#FFD700'
+        }).setOrigin(0.5).setDepth(this.UI_DEPTH);
+
+        this.tweens.add({
+            targets: scoreText,
+            y: scoreText.y - 50,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => scoreText.destroy()
+        });
+
+        // Play appropriate sound
+        if (this.dollarsCollected === 10) {
+            // Play special sound for final dollar
+            this.sound.play('final_dollar_sound');
             
+            // Maybe add some extra effects for the final collection
+            this.cameras.main.flash(1000, 255, 215, 0); // Golden flash
+            
+            // Add celebratory text
+            let finalText = this.add.text(
+                this.game.config.width / 2,
+                this.game.config.height / 2,
+                'MOONSHOT COMPLETE!',
+                {
+                    fontSize: '48px',
+                    fill: '#FFD700',
+                    stroke: '#000000',
+                    strokeThickness: 6
+                }
+            ).setOrigin(0.5).setDepth(this.UI_DEPTH + 1);
+
+            this.tweens.add({
+                targets: finalText,
+                scale: { from: 0.5, to: 1.5 },
+                alpha: { from: 1, to: 0 },
+                duration: 2000,
+                ease: 'Power2',
+                onComplete: () => finalText.destroy()
+            });
+        } else {
+            // Play regular dollar sound
+            this.sound.play('dollar_sound');
+        }
+
+        // Destroy the dollar
+        dollar.destroy();
+
+        // Update the scale of dollar signs (20% smaller)
+        dollar.setScale(0.24); // Assuming original scale was 0.3
+    }
+        
     createStarField() {
         this.starsParticles = this.add.particles('particle');
         
